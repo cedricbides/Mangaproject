@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: mangaverse-mongo
+    restart: unless-stopped
+    # Cap WiredTiger cache to 256 MB — default is 50% of RAM which kills a 1GB server
+    command: --wiredTigerCacheSizeGB 0.25
+    mem_limit: 350m
+    memswap_limit: 350m
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: mangaverse
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Backend ────────────────────────────────────────────────────────────────
+  backend:
+    container_name: mangaverse-backend
+    build:
+      context: ./backend
+      dockerfile: backend.Dockerfile
+    restart: unless-stopped
+    mem_limit: 350m
+    memswap_limit: 350m
+    ports:
+      - '5000:5000'
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI}
+      SESSION_SECRET: ${SESSION_SECRET}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      SERVER_URL: ${SERVER_URL:-http://localhost:5000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5000/api/auth/google/callback}
+      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM:-onboarding@resend.dev}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT}
+    volumes:
+      - uploads:/app/public/uploads
+
+  # ── Frontend ───────────────────────────────────────────────────────────────
+  frontend:
+    container_name: mangaverse-frontend
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+    restart: unless-stopped
+    mem_limit: 64m
+    memswap_limit: 64m
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
+  uploads:

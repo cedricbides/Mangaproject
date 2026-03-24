@@ -1,0 +1,16 @@
+{
+  "name": "mangasite",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "dependencies": {
+    "connect-mongo": "^6.0.0",
+    "mongodb": "^6.21.0"
+  }
+}

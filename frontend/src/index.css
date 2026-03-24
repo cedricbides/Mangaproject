@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme Variables ─────────────────────────────────────────────────────── */
+:root, .theme-dark {
+  --bg:           #0d0d14;
+  --surface:      #13131e;
+  --card:         rgba(255,255,255,0.03);
+  --border:       rgba(255,255,255,0.07);
+  --text:         #eeeef8;
+  --text-muted:   #64648a;
+  --muted:        #3a3a4a;
+  --scrollbar-bg: #0d0d14;
+  --glass-bg:     rgba(255,255,255,0.03);
+  --glass-border: rgba(255,255,255,0.07);
+  --skeleton-a:   #1a1a28;
+  --skeleton-b:   #222234;
+  --dropdown-bg:  #13131e;
+}
+
+.theme-dim {
+  --bg:           #1c1c2e;
+  --surface:      #252540;
+  --card:         rgba(255,255,255,0.05);
+  --border:       rgba(255,255,255,0.1);
+  --text:         #ddddf0;
+  --text-muted:   #7878a0;
+  --muted:        #404060;
+  --scrollbar-bg: #1c1c2e;
+  --glass-bg:     rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.1);
+  --skeleton-a:   #252540;
+  --skeleton-b:   #2e2e50;
+  --dropdown-bg:  #252540;
+}
+
+.theme-light {
+  --bg:           #f0f0f8;
+  --surface:      #ffffff;
+  --card:         rgba(0,0,0,0.03);
+  --border:       rgba(0,0,0,0.08);
+  --text:         #0d0d14;
+  --text-muted:   #7070a0;
+  --muted:        #d0d0e8;
+  --scrollbar-bg: #f0f0f8;
+  --glass-bg:     rgba(255,255,255,0.8);
+  --glass-border: rgba(0,0,0,0.08);
+  --skeleton-a:   #e2e2f0;
+  --skeleton-b:   #ebebf8;
+  --dropdown-bg:  #ffffff;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  transition: 0.3s ease, color 0.3s ease;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+::-webkit-scrollbar-thumb { background: rgba(232,57,77,0.4); border-radius: 99px; }
+
+::selection { background: rgba(232,57,77,0.25); color: #e8394d; }
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+}
+
+.glass-hover { transition: all 0.25s ease; }
+.glass-hover:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(232,57,77,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 24px rgba(232,57,77,0.08);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Manga card cover */
+.manga-cover {
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  width: 100%;
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+.manga-card:hover .manga-cover { transform: scale(1.05); }
+
+/* Badge */
+.badge {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #e8394d, #f5a623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Page hero gradient */
+.hero-bg {
+  background: radial-gradient(ellipse 90% 60% at 50% -5%, rgba(232,57,77,0.18), transparent 70%);
+}
+
+/* Nav active */
+.nav-active { color: #e8394d !important; }
+.nav-active::after { width: 100% !important; }
+
+/* Line clamp */
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Tag hover */
+.tag { transition: all 0.15s ease; cursor: pointer; }
+.tag:hover { background: rgba(232,57,77,0.15); border-color: rgba(232,57,77,0.5); color: #e8394d; }
+
+/* Scrollbar hide for horizontal scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
