@@ -6,6 +6,9 @@ import App from './App'
 import './index.css'
 import { initCsrf, getCsrfToken } from './utils/csrf'
 
+// Set base URL for all API calls
+axios.defaults.baseURL = (import.meta as any).env?.VITE_API_URL || ''
+
 // Attach CSRF token to every mutating axios request automatically
 axios.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase()
@@ -16,9 +19,6 @@ axios.interceptors.request.use((config) => {
 })
 
 // Global react-query client
-// staleTime: 5 min — don't refetch if data is fresh
-// gcTime: 10 min — keep unused cache for 10 min
-// retry: 1 — retry failed requests once
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
