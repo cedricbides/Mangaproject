@@ -10,48 +10,48 @@ import { requireAdmin } from '../middleware/auth'
 const router = Router()
 router.use(requireAdmin)
 
-// ── Backup: export all data as JSON ──────────────────────────────────────────
+// Export all data as a JSON backup file
 router.get('/export', async (req: Request, res: Response) => {
   try {
     const collections = (req.query.collections as string || 'all').split(',')
     const include = (name: string) => collections.includes('all') || collections.includes(name)
 
     const backup: Record<string, any> = {
-      version: '1.0',
+      version:    '1.0',
       exportedAt: new Date().toISOString(),
       collections: {},
     }
 
-    if (include('localManga'))   backup.collections.localManga   = await LocalManga.find().lean()
-    if (include('localChapters')) backup.collections.localChapters = await LocalChapter.find().lean()
+    if (include('localManga'))      backup.collections.localManga      = await LocalManga.find().lean()
+    if (include('localChapters'))   backup.collections.localChapters   = await LocalChapter.find().lean()
     if (include('trackedMangaDex')) backup.collections.trackedMangaDex = await TrackedMangaDex.find().lean()
-    if (include('mdxChapters'))  backup.collections.mdxChapters  = await MangaDexManualChapter.find().lean()
-    if (include('siteSettings')) backup.collections.siteSettings = await SiteSettings.find().lean()
+    if (include('mdxChapters'))     backup.collections.mdxChapters     = await MangaDexManualChapter.find().lean()
+    if (include('siteSettings'))    backup.collections.siteSettings    = await SiteSettings.find().lean()
 
-    const json = JSON.stringify(backup, null, 2)
+    const json     = JSON.stringify(backup, null, 2)
     const filename = `mangaverse-backup-${new Date().toISOString().slice(0, 10)}.json`
 
     res.setHeader('Content-Type', 'application/json')
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
     res.send(json)
 
-    // Log after sending (fire-and-forget)
+    // Log after sending so we don't delay the download
     AdminActivityLog.create({
-      adminId: (req.user as any)?.id || 'unknown',
-      adminUsername: (req.user as any)?.username || 'admin',
-      action: 'backup.export',
-      category: 'backup',
-      details: { collections, filename },
-      ip: req.ip,
+      adminId:       (req.user as any)?.id || 'unknown',
+      adminUsername: (req.user as any)?.name || 'admin',
+      action:        'backup.export',
+      category:      'backup',
+      details:       { collections, filename },
+      ip:            req.ip,
     }).catch(() => {})
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// ── Restore: dry-run first (count what would change) ─────────────────────────
+// Preview what a restore would affect before actually running it
 router.post('/restore/preview', async (req: Request, res: Response) => {
   try {
     const { data } = req.body
-    if (!data?.collections) return res.status(400).json({ error: 'Invalid backup data' })
+    if (!data?.collections)   return res.status(400).json({ error: 'Invalid backup data' })
     if (data.version !== '1.0') return res.status(400).json({ error: `Unsupported backup version: ${data.version}` })
 
     const preview: Record<string, number> = {}
@@ -62,7 +62,7 @@ router.post('/restore/preview', async (req: Request, res: Response) => {
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// ── Restore: apply backup (DESTRUCTIVE - replaces data) ──────────────────────
+// Apply a backup. Destructive: deletes existing data and replaces it.
 router.post('/restore', async (req: Request, res: Response) => {
   try {
     const { data, collections } = req.body
@@ -108,18 +108,18 @@ router.post('/restore', async (req: Request, res: Response) => {
             break
           }
         }
-      } catch (e: any) {
+      } catch {
         results[col] = { deleted: 0, inserted: 0 }
       }
     }
 
     await AdminActivityLog.create({
-      adminId: (req.user as any)?.id || 'unknown',
-      adminUsername: (req.user as any)?.username || 'admin',
-      action: 'backup.restore',
-      category: 'backup',
-      details: { results },
-      ip: req.ip,
+      adminId:       (req.user as any)?.id || 'unknown',
+      adminUsername: (req.user as any)?.name || 'admin',
+      action:        'backup.restore',
+      category:      'backup',
+      details:       { results },
+      ip:            req.ip,
     })
 
     res.json({ success: true, results })

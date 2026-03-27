@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document } from 'mongoose'
 import bcrypt from 'bcryptjs'
 
 export type ReadingStatus = 'reading' | 'completed' | 'plan_to_read' | 'on_hold' | 'dropped'
@@ -10,17 +10,15 @@ export interface IUser extends Document {
   avatar: string
   password?: string
 
-  // Email verification
   emailVerified: boolean
   emailVerificationToken?: string
   emailVerificationExpires?: Date
 
-  // Password reset
   passwordResetToken?: string
   passwordResetExpires?: Date
 
   role: 'user' | 'moderator' | 'admin' | 'superadmin'
-  adminPermissions: string[]   // only relevant when role === 'admin'
+  adminPermissions: string[]
   banned: boolean
   bannedReason?: string
   bannedAt?: Date
@@ -28,8 +26,8 @@ export interface IUser extends Document {
   bio: string
   postCount: number
   favorites: string[]
-  following: string[]    // user IDs this user follows
-  watchedManga: string[] // manga IDs user wants chapter notifications for
+  following: string[]
+  watchedManga: string[]
   pushSubscriptions: Array<{
     endpoint: string
     keys: { p256dh: string; auth: string }
@@ -47,6 +45,7 @@ export interface IUser extends Document {
     updatedAt: Date
     isLocal?: boolean
   }>
+
   theme: 'dark' | 'dim' | 'light'
   createdAt: Date
   comparePassword(candidate: string): Promise<boolean>
@@ -58,18 +57,22 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     avatar: { type: String, default: '' },
+    // Password is excluded from query results by default.
+    // Use .select('+password') explicitly when needed.
     password: { type: String, select: false },
 
-    // Email verification
-    emailVerified:            { type: Boolean, default: false },
-    emailVerificationToken:   { type: String,  select: false },
-    emailVerificationExpires: { type: Date,    select: false },
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String, select: false },
+    emailVerificationExpires: { type: Date, select: false },
 
-    // Password reset
-    passwordResetToken:   { type: String, select: false },
-    passwordResetExpires: { type: Date,   select: false },
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
 
-    role: { type: String, enum: ['user', 'moderator', 'admin', 'superadmin'], default: 'user' },
+    role: {
+      type: String,
+      enum: ['user', 'moderator', 'admin', 'superadmin'],
+      default: 'user',
+    },
     adminPermissions: { type: [String], default: [] },
     banned: { type: Boolean, default: false },
     bannedReason: { type: String },
@@ -85,7 +88,7 @@ const UserSchema = new Schema<IUser>(
       endpoint: { type: String, required: true },
       keys: {
         p256dh: { type: String, required: true },
-        auth:   { type: String, required: true },
+        auth: { type: String, required: true },
       },
       _id: false,
     }],
@@ -112,20 +115,17 @@ const UserSchema = new Schema<IUser>(
 
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) return next()
-  const bcrypt = require('bcryptjs')
   this.password = await bcrypt.hash(this.password, 12)
   next()
 })
 
-UserSchema.methods.comparePassword = async function (candidate: string) {
+UserSchema.methods.comparePassword = async function (candidate: string): Promise<boolean> {
   if (!this.password) return false
-  const bcrypt = require('bcryptjs')
   return bcrypt.compare(candidate, this.password)
 }
-
 
 UserSchema.index({ following: 1 })
 UserSchema.index({ favorites: 1 })
 
-const _Model = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>('User', UserSchema)
-export default _Model
+const UserModel = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>('User', UserSchema)
+export default UserModel

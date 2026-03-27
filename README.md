@@ -1,231 +1,142 @@
-﻿# MangaVerse — Full-Stack Manga Site (MERN)
+# MangaVerse
 
-A complete manga reading platform with MangaDex integration, admin panel, user profiles, and local manga management.
+MangaVerse is a MERN-based manga reader with two content sources:
+- MangaDex API data (proxied through the backend)
+- Locally uploaded manga/chapters managed by admins
 
----
+It includes user auth, reading progress, comments, favorites, and an admin dashboard.
 
+## Tech Stack
 
-## Features
+- Backend: Express + TypeScript + MongoDB (Mongoose)
+- Frontend: React + Vite + Tailwind
 
-### Catalog Page (`/catalog`)
-- Browse all manga from MangaDex API with full pagination
-- Genre pills, status filters, sort options (Popular / Latest / Newest / A-Z)
-- Toggle between Grid and List view
-- Separate "Site Exclusives" tab showing admin-added manga
+## Project Layout
 
-### User Side
+```text
+backend/src/
+  models/         Mongoose schemas
+  routes/         Express route handlers
+  middleware/     Auth and request guards
+  utils/          Email, notifications, scheduler, helpers
+  config/         Passport and OAuth configuration
+  server.ts       Application entry point
 
-- **Login Page** (`/login`) — Email/password + Google OAuth
-- **Profile Page** (`/profile`) — Favorites grid, reading history
-- First account registered automatically becomes Admin
-
-
-### Admin Dashboard (`/admin`)
-- **Stats** — User count, manga count, chapter count
-- **Manga Management** — Add / edit / delete local manga with cover URL, genres, status, author
-- **Chapter Management** — Three import modes:
-  - **MangaDex Import** — Paste manga page URL, pick chapters from a list, import in bulk (pages fetched live at read time, never expire)
-  - **URL Import** — Paste image URLs one per line
-  - **File Upload** — Drag and drop image files
-- **User Management** — View all users, promote/demote admin role
-
-### MangaDex Chapter Import
-- Paste any MangaDex manga URL (e.g. `https://mangadex.org/title/UUID/manga-name`)
-- Loads full English chapter list with checkboxes
-- Select all or pick individual chapters, bulk import in one click
-- Pages are fetched live from MangaDex at-home server on every read — URLs never expire
-- Refresh button in reader if images stop loading mid-session
-
-### Image Proxy
-
-- Backend proxy at `GET /api/proxy/image?url=...` fetches external images server-side
-- Bypasses CORS restrictions and hotlink protection on image CDNs
-- 24-hour cache, streams directly to client
-
-
-### Publish / Draft System
-- Imported chapters are Draft by default — only visible to admins
-- Admins can publish/unpublish individual chapters with one click
-- **Bulk Edit mode** — select multiple chapters to publish, unpublish, or delete
-
-- Published chapters appear for all users; drafts are admin-only
-
----
-
-
-## Project Structure
-
-
-```
-mangasite/
-├── backend/
-│   ├── src/
-│   │   ├── models/
-│   │   │   ├── User.ts                    # role, password fields
-│   │   │   ├── LocalManga.ts              # Admin-managed manga
-│   │   │   ├── LocalChapter.ts            # Admin-managed chapters
-│   │   │   ├── MangaDexManualChapter.ts   # MangaDex-linked chapters (with mdxChapterId + published)
-│   │   │   ├── HiddenChapter.ts           # Soft-hidden API chapters
-│   │   │   └── DeletedChapter.ts          # Permanently removed API chapters
-│   │   ├── routes/
-│   │   │   ├── auth.ts          # Email/password + Google OAuth
-│   │   │   ├── admin.ts         # Admin CRUD + bulk publish/delete
-│   │   │   ├── localManga.ts    # Public local manga + published chapters
-│   │   │   ├── mangadex.ts      # MangaDex proxy + manga-chapters + chapter-pages endpoints
-│   │   │   ├── proxy.ts         # Image proxy (bypasses CORS/hotlink)
-│   │   │   ├── upload.ts        # File upload (multer)
-│   │   │   └── favorites.ts
-│   │   ├── middleware/
-│   │   │   └── auth.ts          # requireAuth, requireAdmin
-│   │   └── server.ts
-└── frontend/
-    └── src/
-        ├── pages/
-        │   ├── Catalog.tsx           # Full catalog with filters
-        │   ├── Profile.tsx           # User profile + history
-        │   ├── Login.tsx             # Email/password login
-        │   ├── Admin.tsx             # Admin dashboard
-        │   ├── MangaDetail.tsx       # MangaDex manga detail + chapter import modal
-        │   ├── ManualReader.tsx      # Reader — fetches fresh MangaDex pages live
-        │   ├── LocalMangaDetail.tsx  # Local manga detail
-        │   └── LocalReader.tsx       # Reader for local chapters
-        ├── context/
-        │   └── AuthContext.tsx       # isAdmin, loginWithEmail, register
-        └── types/index.ts            # LocalManga, LocalChapter, role
+frontend/src/
+  pages/          Route-level screens
+  components/     Shared UI components
+  components/admin/
+                  Admin-specific panels
+  context/        App context providers
+  hooks/          Custom hooks
+  utils/          Frontend helper utilities
+  types/          Shared TypeScript types
 ```
 
----
-
-
-## Setup
-
+## Run Locally
 
 ### Backend
+
 ```bash
 cd backend
 npm install
 cp .env.example .env
-# Fill in MONGODB_URI and SESSION_SECRET
+```
+
+Fill at least:
+- `MONGODB_URI`
+- `SESSION_SECRET`
+
+Then start:
+
+```bash
 npm run dev
 ```
 
+Backend default port: `5000`.
+
 ### Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
----
+Frontend default port: `3000` and API requests are proxied to the backend.
 
+## Run with Docker
+
+```bash
+cp backend/.env.example .env
+# edit values in .env
+docker compose up --build
+```
+
+This starts MongoDB, backend, and frontend together with persistent MongoDB storage.
+
+## Environment Variables
+
+Set variables in `backend/.env`. See `.env.example` for full comments.
+
+- `MONGODB_URI`: MongoDB connection string
+- `SESSION_SECRET`: session cookie signing secret
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: Google OAuth (optional)
+- `RESEND_API_KEY`, `EMAIL_FROM`: email verification and password reset (optional)
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: web push notifications (optional)
+- `CLIENT_URL`: frontend URL (default `http://localhost:3000`)
+- `SERVER_URL`: backend URL (default `http://localhost:5000`)
+
+Generate a strong session secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
 
 ## Admin Access
 
-1. Go to `/login` and register an account
-2. The first registered account automatically becomes Admin
+The first registered account becomes `superadmin`.
 
-3. Admin badge appears in the navbar
-4. Access `/admin` for the dashboard
+You can also update a user role directly in MongoDB:
 
-Or manually set `role: "admin"` in MongoDB for a user document.
+```js
+db.users.updateOne(
+  { email: "you@example.com" },
+  { $set: { role: "admin" } }
+)
+```
 
----
+Roles: `user`, `moderator`, `admin`, `superadmin`.
 
+## Chapter Import Methods
 
-## API Endpoints
+1. MangaDex import from a manga URL
+2. URL import (one image URL per line)
+3. File upload (drag/drop images, reorder pages)
 
+Imported chapters are saved as drafts until an admin publishes them.
 
-### Auth
-| Method | Route | Description |
-|--------|-------|-------------|
-| POST | `/api/auth/register` | Register with email/password |
-| POST | `/api/auth/login` | Login with email/password |
-| GET | `/auth/google` | Google OAuth |
-| GET | `/api/auth/me` | Current user |
-| GET | `/api/auth/logout` | Logout |
+## API Overview
 
-### Admin (requires admin role)
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/admin/stats` | User / manga / chapter counts |
-| GET/POST | `/api/admin/manga` | List / create local manga |
-| PUT/DELETE | `/api/admin/manga/:id` | Update / delete local manga |
-| GET/POST | `/api/admin/manga/:id/chapters` | List / create local chapters |
-| PUT/DELETE | `/api/admin/chapters/:id` | Update / delete local chapter |
-| GET/POST | `/api/admin/mangadex/:mangaDexId/chapters` | List / create MangaDex chapters |
-| PUT/DELETE | `/api/admin/mangadex/chapters/:id` | Update / delete MangaDex chapter |
-| POST | `/api/admin/mangadex/chapters/bulk-delete` | Bulk delete by IDs |
-| POST | `/api/admin/mangadex/chapters/bulk-publish` | Bulk publish/unpublish by IDs |
-| GET/POST | `/api/admin/mangadex/:id/hidden-chapters` | Hide/show API chapters |
-| DELETE | `/api/admin/mangadex/:id/hidden-chapters/:chapterId` | Restore hidden chapter |
-| POST | `/api/admin/mangadex/:id/deleted-chapters` | Permanently delete API chapter |
-| GET | `/api/admin/users` | List all users |
-| PUT | `/api/admin/users/:id/role` | Promote / demote user |
+Common endpoints:
+- `GET /api/auth/me`
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/mangadex/*`
+- `GET /api/mangadex/chapter-pages/:chapterId`
+- `GET /api/proxy/image?url=...`
+- `POST /api/upload/pages`
 
-### Local Manga (public)
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/local-manga` | All local manga |
-| GET | `/api/local-manga/:slug` | Single manga by slug or ID |
-| GET | `/api/local-manga/:id/chapters` | Chapters for a manga |
-| GET | `/api/local-manga/chapter/:id` | Single local chapter |
-| GET | `/api/local-manga/manual-chapter/:id` | Single MangaDex manual chapter |
-| GET | `/api/local-manga/manual-chapters/:mangaDexId` | Published chapters for a MangaDex manga |
+Admin endpoints are under ` /api/admin`.
 
-### MangaDex
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/mangadex/manga-chapters/:mangaId` | All English chapters for a manga (for import picker) |
-| GET | `/api/mangadex/chapter-pages/:chapterId` | Fresh image URLs from at-home server |
-| GET | `/api/mangadex/*` | Generic MangaDex API proxy |
+## Security Notes
 
-### Utility
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/proxy/image?url=...` | Image proxy (bypasses CORS/hotlink) |
-| POST | `/api/upload/pages` | Upload image files (max 50 at once, 10MB each) |
-| DELETE | `/api/upload/pages/:filename` | Delete uploaded image |
-
----
-
-
-## Admin Workflow — Adding Chapters
-
-
-### Option A: Import from MangaDex (recommended)
-1. Go to a manga detail page on your site
-2. Click **+ Add Chapter** (admin only)
-3. Paste the MangaDex manga page URL (e.g. `https://mangadex.org/title/UUID/...`)
-4. Click **Load Chapters** — full chapter list appears
-5. Select the chapters you want (or click **All**)
-6. Click **Import X Chapters**
-
-7. Chapters are saved as Draft — select them and click **Publish** to make them visible to users
-
-
-> Pages are fetched live from MangaDex every time someone reads — no expiry issues.
-
-### Option B: Manual URL import
-
-1. In the chapter modal, switch to the **URL Import** tab
-
-2. Paste image URLs one per line
-3. Fill in chapter number and save
-
-### Option C: File upload
-
-1. Switch to the **Upload Files** tab
-2. Drag and drop or browse for image files
-
-3. Reorder pages if needed, then save
-
----
-
+- Production rate limits are enabled; development skips them
+- Request sanitization removes keys with `$` or `.`
+- CSRF token endpoint exists at `GET /api/csrf-token`
+- Sessions are stored in MongoDB via `connect-mongo` (7-day expiry)
 
 ## Notes
-- Solo Leveling and other officially licensed manga have no chapters available on MangaDex — this is intentional on MangaDex's side, not a bug
-- MangaDex at-home image URLs are session-scoped and expire. The reader fetches fresh ones on every load. Use the Refresh button if images stop mid-session
 
-- The image proxy adds a 24-hour browser cache for performance
->>>>>>> fe805ab47fd5be7866f6a29c09d88b1f2f7eb730
-
+- Some officially licensed manga have no chapters on MangaDex by design
+- Maintenance mode blocks visitors but still allows admin access

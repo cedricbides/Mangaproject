@@ -3,7 +3,8 @@ import axios from 'axios'
 
 const router = Router()
 
-// Allowlist — mangadex uses rotating CDN subdomains so check suffix
+// Only allow requests to known manga CDN hosts.
+// MangaDex uses rotating CDN subdomains so we check the suffix.
 function isAllowedHost(hostname: string): boolean {
   return (
     hostname === 'uploads.mangadex.org' ||
@@ -14,7 +15,7 @@ function isAllowedHost(hostname: string): boolean {
   )
 }
 
-// Block private/internal IP ranges to prevent SSRF
+// Block private/internal IP ranges to prevent SSRF attacks
 function isPrivateHost(hostname: string): boolean {
   return (
     hostname === 'localhost' ||
@@ -23,7 +24,7 @@ function isPrivateHost(hostname: string): boolean {
     hostname.startsWith('10.') ||
     hostname.startsWith('172.16.') ||
     hostname === '0.0.0.0' ||
-    hostname.includes('169.254') // AWS metadata
+    hostname.includes('169.254') // AWS metadata endpoint
   )
 }
 
@@ -54,8 +55,8 @@ router.get('/image', async (req: Request, res: Response) => {
       timeout: 15000,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Referer': `${parsed.protocol}//${parsed.hostname}/`,
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        'Referer':    `${parsed.protocol}//${parsed.hostname}/`,
+        'Accept':     'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
       },
     })
 

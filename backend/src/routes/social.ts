@@ -1,24 +1,16 @@
 ﻿import { Router, Request, Response } from 'express'
-
 import User from '../models/User'
-import { notifyUser, notifyAdmin } from '../utils/notifications'
-type IUser = import('../models/User').IUser
-type ReadingStatus = import('../models/User').ReadingStatus
 import Review from '../models/Review'
 import Comment from '../models/Comment'
 import Report from '../models/Report'
-
+import { notifyUser, notifyAdmin } from '../utils/notifications'
+import { requireAuth } from '../middleware/auth'
+import type { IUser, ReadingStatus } from '../models/User'
 
 const router = Router()
 
-function requireAuth(req: Request, res: Response, next: () => void) {
-  if (!req.user) return res.status(401).json({ error: 'Not authenticated' })
-  next()
-}
+// Reading list
 
-// ─── READING LIST ─────────────────────────────────────────────────────────────
-
-// GET reading list status for a manga
 router.get('/reading-list/:mangaId', requireAuth, async (req: Request, res: Response) => {
   const user = await User.findById((req.user as IUser).id)
   if (!user) return res.status(404).json({ error: 'User not found' })
@@ -26,7 +18,6 @@ router.get('/reading-list/:mangaId', requireAuth, async (req: Request, res: Resp
   res.json({ status: entry?.status || null })
 })
 
-// POST set reading list status (or remove if status is null)
 router.post('/reading-list', requireAuth, async (req: Request, res: Response) => {
   const { mangaId, status } = req.body
   if (!mangaId) return res.status(400).json({ error: 'mangaId required' })
@@ -38,31 +29,26 @@ router.post('/reading-list', requireAuth, async (req: Request, res: Response) =>
   const idx = user.readingList.findIndex(r => r.mangaId === mangaId)
 
   if (!status) {
-    // Remove from list
     if (idx > -1) user.readingList.splice(idx, 1)
+  } else if (idx > -1) {
+    user.readingList[idx].status = status as ReadingStatus
+    user.readingList[idx].updatedAt = new Date()
   } else {
-    if (idx > -1) {
-      user.readingList[idx].status = status as ReadingStatus
-      user.readingList[idx].updatedAt = new Date()
-    } else {
-      user.readingList.push({ mangaId, status: status as ReadingStatus, updatedAt: new Date() })
-    }
+    user.readingList.push({ mangaId, status: status as ReadingStatus, updatedAt: new Date() })
   }
 
   await user.save()
   res.json({ status: status || null, readingList: user.readingList })
 })
 
-// GET full reading list for profile page
 router.get('/reading-list', requireAuth, async (req: Request, res: Response) => {
   const user = await User.findById((req.user as IUser).id)
   if (!user) return res.status(404).json({ error: 'User not found' })
   res.json({ readingList: user.readingList || [] })
 })
 
-// ─── REVIEWS & RATINGS ───────────────────────────────────────────────────────
+// Reviews
 
-// GET reviews for a manga
 router.get('/reviews/:mangaId', async (req: Request, res: Response) => {
   try {
     const reviews = await Review.find({ mangaId: req.params.mangaId })
@@ -72,19 +58,15 @@ router.get('/reviews/:mangaId', async (req: Request, res: Response) => {
       ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
       : null
     res.json({ reviews, avg, count: reviews.length })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// GET current user's review for a manga
 router.get('/reviews/:mangaId/mine', requireAuth, async (req: Request, res: Response) => {
   const userId = (req.user as IUser).id
   const review = await Review.findOne({ mangaId: req.params.mangaId, userId })
   res.json({ review: review || null })
 })
 
-// POST create or update review
 router.post('/reviews/:mangaId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rating, body } = req.body
@@ -102,40 +84,32 @@ router.post('/reviews/:mangaId', requireAuth, async (req: Request, res: Response
       { upsert: true, new: true }
     )
     res.json({ review })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// DELETE review
 router.delete('/reviews/:mangaId', requireAuth, async (req: Request, res: Response) => {
   const userId = (req.user as IUser).id
   await Review.findOneAndDelete({ mangaId: req.params.mangaId, userId })
   res.json({ success: true })
 })
 
-// ─── COMMENTS ────────────────────────────────────────────────────────────────
+// Comments
 
-// GET comments for a chapter
 router.get('/comments/:chapterId', async (req: Request, res: Response) => {
   try {
     const comments = await Comment.find({ chapterId: req.params.chapterId })
       .sort({ createdAt: -1 })
       .limit(100)
     res.json({ comments })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// POST add comment
 router.post('/comments/:chapterId', requireAuth, async (req: Request, res: Response) => {
   try {
-
     const { body, mangaId, parentId } = req.body
-
     if (!body?.trim()) return res.status(400).json({ error: 'Comment cannot be empty' })
     if (body.length > 2000) return res.status(400).json({ error: 'Comment too long' })
+
     const user = req.user as IUser
     const comment = await Comment.create({
       chapterId: req.params.chapterId,
@@ -144,11 +118,10 @@ router.post('/comments/:chapterId', requireAuth, async (req: Request, res: Respo
       userName: user.name,
       userAvatar: user.avatar || '',
       body: body.trim(),
-
       parentId: parentId || null,
     })
 
-    // Notify parent comment author when someone replies
+    // Notify the parent comment's author when someone replies (not self-replies)
     if (parentId) {
       const parent = await Comment.findById(parentId)
       if (parent && parent.userId !== user.id) {
@@ -162,15 +135,10 @@ router.post('/comments/:chapterId', requireAuth, async (req: Request, res: Respo
       }
     }
 
-
     res.status(201).json({ comment })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-
-// POST toggle like on a comment
 router.post('/comments/:commentId/like', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user as IUser
@@ -182,7 +150,6 @@ router.post('/comments/:commentId/like', requireAuth, async (req: Request, res: 
       comment.likes = comment.likes.filter((id: string) => id !== user.id)
     } else {
       comment.likes.push(user.id)
-      // Notify comment author (not self-likes)
       if (comment.userId !== user.id) {
         notifyUser({
           userId: comment.userId,
@@ -193,15 +160,12 @@ router.post('/comments/:commentId/like', requireAuth, async (req: Request, res: 
         })
       }
     }
+
     await comment.save()
     res.json({ liked: !alreadyLiked, likeCount: comment.likes.length })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-
-// DELETE comment (own comment or admin)
 router.delete('/comments/:commentId', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user as IUser
@@ -212,14 +176,11 @@ router.delete('/comments/:commentId', requireAuth, async (req: Request, res: Res
     }
     await comment.deleteOne()
     res.json({ success: true })
-  } catch (err: any) {
-    res.status(500).json({ error: err.message })
-  }
+  } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
+// Reports
 
-
-// ─── REPORT COMMENT OR REVIEW ─────────────────────────────────────────────────
 router.post('/reports', requireAuth, async (req: Request, res: Response) => {
   try {
     const { targetType, targetId, reason } = req.body
@@ -227,22 +188,21 @@ router.post('/reports', requireAuth, async (req: Request, res: Response) => {
     if (!['comment', 'review'].includes(targetType)) return res.status(400).json({ error: 'Invalid target type' })
     if (!reason?.trim()) return res.status(400).json({ error: 'Reason required' })
 
-    let target: any = null
-    if (targetType === 'comment') target = await Comment.findById(targetId)
-    else target = await Review.findById(targetId)
+    const target: any = targetType === 'comment'
+      ? await Comment.findById(targetId)
+      : await Review.findById(targetId)
     if (!target) return res.status(404).json({ error: 'Target not found' })
 
     const report = await Report.create({
       targetType, targetId,
-      targetBody: target.body || '',
-      targetUserId: target.userId,
+      targetBody:     target.body || '',
+      targetUserId:   target.userId,
       targetUserName: target.userName,
-      reportedBy: String(reporter._id),
+      reportedBy:     String(reporter._id),
       reportedByName: reporter.name,
-      reason: reason.trim(),
+      reason:         reason.trim(),
     })
 
-    // Notify admins of new report
     notifyAdmin({
       type: 'new_report',
       title: 'New Content Report',
@@ -257,9 +217,8 @@ router.post('/reports', requireAuth, async (req: Request, res: Response) => {
   }
 })
 
-// ─── FOLLOW SYSTEM ────────────────────────────────────────────────────────────
+// Follow system
 
-// POST toggle follow/unfollow a user
 router.post('/follow/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
     const me = req.user as IUser
@@ -282,7 +241,6 @@ router.post('/follow/:userId', requireAuth, async (req: Request, res: Response) 
 
     const followerCount = await User.countDocuments({ following: targetId })
 
-    // Notify the target user when followed (not on unfollow)
     if (!alreadyFollowing) {
       notifyUser({
         userId: targetId,
@@ -297,7 +255,6 @@ router.post('/follow/:userId', requireAuth, async (req: Request, res: Response) 
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// GET followers of a user (users who follow them)
 router.get('/followers/:userId', async (req: Request, res: Response) => {
   try {
     const followers = await User.find({ following: req.params.userId })
@@ -308,7 +265,6 @@ router.get('/followers/:userId', async (req: Request, res: Response) => {
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// GET users that a user is following
 router.get('/following/:userId', async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.params.userId).select('following').lean() as any
@@ -321,10 +277,8 @@ router.get('/following/:userId', async (req: Request, res: Response) => {
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
+// Manga watch (chapter notifications)
 
-// ─── MANGA WATCH (chapter notifications) ─────────────────────────────────────
-
-// GET watch status for a manga
 router.get('/watch/:mangaId', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = await User.findById((req.user as IUser).id).select('watchedManga')
@@ -334,7 +288,6 @@ router.get('/watch/:mangaId', requireAuth, async (req: Request, res: Response) =
   } catch (err: any) { res.status(500).json({ error: err.message }) }
 })
 
-// POST toggle watch for a manga
 router.post('/watch/:mangaId', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = await User.findById((req.user as IUser).id).select('watchedManga')
