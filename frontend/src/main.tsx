@@ -6,10 +6,8 @@ import App from './App'
 import './index.css'
 import { initCsrf, getCsrfToken } from './utils/csrf'
 
-// Set base URL for all API calls
 axios.defaults.baseURL = (import.meta as any).env?.VITE_API_URL || ''
 
-// Attach CSRF token to every mutating axios request automatically
 axios.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase()
   if (method && ['post', 'put', 'patch', 'delete'].includes(method)) {
@@ -18,7 +16,6 @@ axios.interceptors.request.use((config) => {
   return config
 })
 
-// Global react-query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

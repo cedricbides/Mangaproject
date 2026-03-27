@@ -1,8 +1,10 @@
-﻿let csrfToken = ''
+﻿const API_URL = (import.meta as any).env?.VITE_API_URL || ''
+
+let csrfToken = ''
 
 export async function initCsrf(): Promise<void> {
   try {
-    const res = await fetch('/api/csrf-token', { credentials: 'include' })
+    const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: 'include' })
     const data = await res.json()
     csrfToken = data.token
   } catch (err) {
