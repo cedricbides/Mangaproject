@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+﻿import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
@@ -47,10 +47,8 @@ const isDev = process.env.NODE_ENV !== 'production'
 app.set('etag', false)
 app.set('trust proxy', 1)
 
-// Gzip responses to reduce JSON payload size.
 app.use(compression())
 
-// Security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -69,15 +67,22 @@ app.use(helmet({
       connectSrc: [
         "'self'",
         'https://api.mangadex.org',
-        'http://localhost:3000',
-        'http://localhost:5000',
+        'https://mangaproject-frontend.onrender.com',
+        'https://mangaproject.onrender.com',
+        'https://www.mangaverse.ink',
+        'https://mangaverse.ink',
       ],
     },
   },
 }))
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:3000',
+    'https://mangaproject-frontend.onrender.com',
+    'https://www.mangaverse.ink',
+    'https://mangaverse.ink',
+  ],
   credentials: true,
 }))
 
@@ -85,7 +90,6 @@ app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')))
 
-// Strip keys starting with $ or containing . from request body and query to prevent NoSQL injection
 app.use((req, _res, next) => {
   function sanitize(obj: any): any {
     if (!obj || typeof obj !== 'object') return obj
@@ -103,7 +107,6 @@ app.use((req, _res, next) => {
   next()
 })
 
-// Rate limiting; fully skipped in development.
 app.use('/api', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -135,11 +138,6 @@ app.use('/api/auth/resend-verification', rateLimit({
   skip: () => isDev,
 }))
 
-// CSRF protection using the double-submit cookie pattern.
-// The frontend fetches /api/csrf-token on load and sends the token
-// as the x-csrf-token header on every mutating request.
-// doubleCsrfProtection is wired up but not applied globally yet.
-// uncomment the app.use line below when the frontend is fully integrated.
 const { generateToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => process.env.SESSION_SECRET || 'dev_secret_change_me',
   cookieName: 'x-csrf-token',
@@ -156,9 +154,6 @@ app.get('/api/csrf-token', (req, res) => {
   res.json({ token: generateToken(req, res) })
 })
 
-// app.use(doubleCsrfProtection) // enable once frontend sends the header on all mutations
-
-// Session is stored in MongoDB so it survives server restarts.
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
   resave: false,
@@ -171,9 +166,6 @@ app.use(session({
   },
 }))
 
-// Load the logged-in user from the session on every request.
-// readingHistory and readingList are included because several routes
-// read them directly off req.user rather than re-querying the DB.
 app.use(async (req: any, _res, next) => {
   const userId = req.session?.userId
   if (!userId) return next()
@@ -195,7 +187,6 @@ configurePassport()
 app.use(passport.initialize())
 app.use(passport.session())
 
-// Routes
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 app.use('/api/auth', authRoutes)
 app.use('/api/search', searchRoutes)
@@ -219,7 +210,6 @@ app.use('/api/progress', readingProgressRoutes)
 app.use('/api/push', pushRoutes)
 app.use('/api/translate', translateRoutes)
 
-// Connect to MongoDB then start the server
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('MongoDB connected')
