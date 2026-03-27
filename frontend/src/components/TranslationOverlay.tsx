@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
-import type { BoundingBox } from '../../../backend/src/routes/translate'
-
-// ── Re-export the type locally so we don't depend on backend path ─────────────
-export interface Box extends BoundingBox {}
+// Frontend-local shape for translated text boxes returned by /api/translate/page.
+export interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+  original: string
+  translated: string
+}
 
 interface Props {
   pageUrl: string

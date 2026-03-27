@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Heart, BookOpen, Star, Calendar, Tag, Plus, Trash2, X, Upload, Download, Link2, Eye, CheckSquare, Square, Globe, EyeOff, FileText, ChevronDown, ChevronUp, Check, Pencil, List, Lock } from 'lucide-react'
 
@@ -456,11 +456,14 @@ const LANG_MAP: Record<string, { cc: string; label: string; color: string }> = {
   }
 
 // ── LangFlag: language name only ─────────────────────────────────────────────
-function LangFlag({ lang }: { lang: string }) {
+function LangFlag({ lang, size }: { lang: string; size?: number }) {
   const info = LANG_MAP[lang]
   const fullLabel = info?.label ?? lang
   return (
-    <span className="text-[11px] font-body text-text-muted/70 flex-shrink-0">
+    <span
+      className="font-body text-text-muted/70 flex-shrink-0"
+      style={{ fontSize: size ? `${size}px` : '11px' }}
+    >
       {fullLabel}
     </span>
   )
