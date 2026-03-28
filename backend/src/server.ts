@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv'
+import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
@@ -50,6 +50,9 @@ app.set('trust proxy', 1)
 app.use(compression())
 
 app.use(helmet({
+  // Default is same-origin; that blocks <img> / canvas use when the page is on
+  // another host (e.g. Vercel) and assets are served from Render (cross-site).
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
