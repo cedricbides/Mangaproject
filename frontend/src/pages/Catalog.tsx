@@ -9,7 +9,7 @@ import { GridSkeleton } from '@/components/Skeleton'
 import { motion } from 'framer-motion'
 import { QK, fetchLocalManga } from '@/utils/queries'
 
-const MD = 'https://api.mangadex.org'
+const MD = 'https://mangaproject.onrender.com/api/mangadex'
 
 const ALL_GENRES = [
   'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',

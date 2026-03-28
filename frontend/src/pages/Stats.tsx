@@ -50,7 +50,7 @@ export default function Stats() {
     if (!mdxHistory.length) return
     setLoadingGenres(true)
     const mangaIds = [...new Set(mdxHistory.map(h => h.mangaId))].slice(0, 20)
-    axios.get(`https://api.mangadex.org/manga?ids[]=${mangaIds.join('&ids[]=')}&limit=20`)
+    axios.get(`https://mangaproject.onrender.com/api/mangadex/manga?ids[]=${mangaIds.join('&ids[]=')}&limit=20`)
       .then(res => {
         const counts: Record<string, number> = {}
         for (const m of res.data.data) {
