@@ -1,6 +1,8 @@
 import type { Manga, MangaCoverArt, MangaRelationship } from '@/types'
 
-export const MANGADEX_BASE = '/api/mangadex'
+const API_BASE = 'https://mangaproject.onrender.com'
+
+export const MANGADEX_BASE = `${API_BASE}/api/mangadex`
 export const MANGADEX_UPLOADS = 'https://uploads.mangadex.org'
 
 export function getCoverUrl(manga: Manga, size: 256 | 512 | null = 256): string {
@@ -13,7 +15,7 @@ export function getCoverUrl(manga: Manga, size: 256 | 512 | null = 256): string 
 
   const suffix = size ? `.${size}.jpg` : ''
   const url = `https://uploads.mangadex.org/covers/${manga.id}/${fileName}${suffix}`
-  return `/api/proxy/image?url=${encodeURIComponent(url)}`
+  return `${API_BASE}/api/proxy/image?url=${encodeURIComponent(url)}`
 }
 
 export function getMangaTitle(manga: Manga): string {
