@@ -4,7 +4,6 @@ import axios from 'axios'
 const router = Router()
 
 // Only allow requests to known manga CDN hosts.
-// MangaDex uses rotating CDN subdomains so we check the suffix.
 function isAllowedHost(hostname: string): boolean {
   return (
     hostname === 'uploads.mangadex.org' ||
@@ -28,16 +27,51 @@ function isPrivateHost(hostname: string): boolean {
   )
 }
 
-router.get('/image', async (req: Request, res: Response) => {
-  const { url } = req.query
+async function fetchWithRetry(url: string, parsed: URL, attempt = 1): Promise<any> {
+  const maxAttempts = 3
+  try {
+    return await axios.get(url, {
+      responseType: 'stream',
+      timeout: 15000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Referer':    `${parsed.protocol}//${parsed.hostname}/`,
+        'Accept':     'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+    })
+  } catch (err: any) {
+    // Retry on timeout or 5xx errors, but not on 4xx (image not found, etc.)
+    const status = err.response?.status
+    const isRetryable = !status || status >= 500 || err.code === 'ECONNABORTED'
+    if (isRetryable && attempt < maxAttempts) {
+      const delay = 300 * attempt // 300ms, 600ms
+      await new Promise(resolve => setTimeout(resolve, delay))
+      return fetchWithRetry(url, parsed, attempt + 1)
+    }
+    throw err
+  }
+}
 
-  if (!url || typeof url !== 'string') {
+router.get('/image', async (req: Request, res: Response) => {
+  // Strip internal retry cache-bust params before forwarding
+  const rawUrl = req.query.url
+  if (!rawUrl || typeof rawUrl !== 'string') {
     return res.status(400).json({ error: 'Missing url query parameter' })
+  }
+
+  // Strip the _retry param that the frontend appends for cache-busting
+  let cleanUrl = rawUrl
+  try {
+    const u = new URL(rawUrl)
+    u.searchParams.delete('_retry')
+    cleanUrl = u.toString()
+  } catch {
+    // rawUrl is not a full URL — leave as-is and let validation below catch it
   }
 
   let parsed: URL
   try {
-    parsed = new URL(url)
+    parsed = new URL(cleanUrl)
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return res.status(400).json({ error: 'Invalid URL protocol' })
     }
@@ -50,15 +84,7 @@ router.get('/image', async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await axios.get(url, {
-      responseType: 'stream',
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Referer':    `${parsed.protocol}//${parsed.hostname}/`,
-        'Accept':     'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      },
-    })
+    const response = await fetchWithRetry(cleanUrl, parsed)
 
     const contentType = response.headers['content-type'] || 'image/jpeg'
     if (!contentType.startsWith('image/')) {

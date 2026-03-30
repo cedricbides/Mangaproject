@@ -25,6 +25,50 @@ interface Props {
   excludeId?: string
 }
 
+function RetryImage({
+  src,
+  alt,
+  className,
+}: {
+  src: string
+  alt: string
+  className?: string
+}) {
+  const [imgSrc, setImgSrc] = useState(src)
+  const retriesRef = useRef(0)
+  const maxRetries = 3
+
+  useEffect(() => {
+    setImgSrc(src)
+    retriesRef.current = 0
+  }, [src])
+
+  const handleError = () => {
+    if (retriesRef.current < maxRetries) {
+      retriesRef.current += 1
+      const delay = 500 * retriesRef.current
+      setTimeout(() => {
+        const separator = src.includes('?') ? '&' : '?'
+        setImgSrc(`${src}${separator}_retry=${retriesRef.current}`)
+      }, delay)
+    } else {
+      setImgSrc(
+        `https://placehold.co/112x160/111118/6b6b8a?text=${encodeURIComponent(alt.slice(0, 10))}`
+      )
+    }
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onError={handleError}
+    />
+  )
+}
+
 export default function RecommendedManga({ mangadexId, tags, localGenres, excludeId }: Props) {
   const [items, setItems] = useState<RecItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -60,12 +104,12 @@ export default function RecommendedManga({ mangadexId, tags, localGenres, exclud
 
       setItems(
         data
-          .filter((m: any) => m.id !== mangadexId) // exclude current
+          .filter((m: any) => m.id !== mangadexId)
           .slice(0, 10)
           .map((m: any) => {
             const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
             const cover = coverRel?.attributes?.fileName
-              ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}` 
+              ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}`
               : ''
             return {
               id: m.id,
@@ -83,7 +127,6 @@ export default function RecommendedManga({ mangadexId, tags, localGenres, exclud
 
   async function fetchLocal() {
     try {
-      // Search local DB for manga with matching genres
       const res = await axios.get('/api/local-manga', {
         params: { limit: 20 },
       })
@@ -95,7 +138,6 @@ export default function RecommendedManga({ mangadexId, tags, localGenres, exclud
           return mGenres.some(g => localGenres!.includes(g))
         })
         .sort((a: any, b: any) => {
-          // Sort by number of matching genres
           const aMatch = (a.genres || []).filter((g: string) => localGenres!.includes(g)).length
           const bMatch = (b.genres || []).filter((g: string) => localGenres!.includes(g)).length
           return bMatch - aMatch
@@ -176,13 +218,15 @@ export default function RecommendedManga({ mangadexId, tags, localGenres, exclud
             {/* Cover */}
             <div className="w-28 h-40 rounded-xl overflow-hidden bg-white/5 border border-white/5 mb-2 relative">
               {item.cover
-                ? <img src={item.cover} alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"  loading="lazy"/>
+                ? <RetryImage
+                    src={item.cover}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 : <div className="w-full h-full flex items-center justify-center">
                     <BookOpen size={24} className="text-text-muted opacity-30" />
                   </div>
               }
-
             </div>
 
             {/* Info */}

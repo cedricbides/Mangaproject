@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Heart, BookOpen, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Manga } from '@/types'
 import { getCoverUrl, getMangaTitle, getMangaTags, getStatusColor } from '@/utils/manga'
 import { useAuth } from '@/context/AuthContext'
@@ -14,6 +14,56 @@ interface Props {
 
 // Simple cache so we don't refetch ratings on every render
 const ratingCache: Record<string, { avg: number | null; count: number }> = {}
+
+function RetryImage({
+  src,
+  alt,
+  className,
+  fallbackText,
+}: {
+  src: string
+  alt: string
+  className?: string
+  fallbackText: string
+}) {
+  const [imgSrc, setImgSrc] = useState(src)
+  const retriesRef = useRef(0)
+  const maxRetries = 3
+
+  // Reset when src changes (e.g. different manga)
+  useEffect(() => {
+    setImgSrc(src)
+    retriesRef.current = 0
+  }, [src])
+
+  const handleError = () => {
+    if (retriesRef.current < maxRetries) {
+      retriesRef.current += 1
+      const delay = 500 * retriesRef.current // 500ms, 1s, 1.5s
+      setTimeout(() => {
+        // Append a cache-bust param so the browser actually re-requests
+        const separator = src.includes('?') ? '&' : '?'
+        setImgSrc(`${src}${separator}_retry=${retriesRef.current}`)
+      }, delay)
+    } else {
+      setImgSrc(
+        `https://placehold.co/256x384/111118/6b6b8a?text=${encodeURIComponent(
+          fallbackText.slice(0, 12)
+        )}`
+      )
+    }
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onError={handleError}
+    />
+  )
+}
 
 export default function MangaCard({ manga, index = 0 }: Props) {
   const { toggleFavorite, isFavorite } = useAuth()
@@ -48,15 +98,13 @@ export default function MangaCard({ manga, index = 0 }: Props) {
     >
       <Link to={`/manga/${manga.id}`} className="block">
         <div className="relative overflow-hidden rounded-xl">
-          <img
+          <RetryImage
             src={cover}
             alt={title}
             className="manga-cover"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = `https://placehold.co/256x384/111118/6b6b8a?text=${encodeURIComponent(title.slice(0, 12))}`
-            }}
+            fallbackText={title}
           />
+
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex flex-col justify-end p-3">
             <div className="flex flex-wrap gap-1 mb-2">
