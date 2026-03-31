@@ -61,8 +61,10 @@ async function fetchFromMangaDex(chapterId: string): Promise<string[]> {
     { headers: { 'User-Agent': 'MangaVerse/1.0' }, timeout: 12_000 }
   )
   const { baseUrl, chapter } = r.data
+  // Return direct CDN URLs — MangaDex CDN supports CORS and is meant to be
+  // fetched by the browser directly, not proxied through a server.
   const pages: string[] = chapter.data.map(
-    (f: string) => `/api/proxy/image?url=${encodeURIComponent(`${baseUrl}/data/${chapter.hash}/${f}`)}`
+    (f: string) => `${baseUrl}/data/${chapter.hash}/${f}`
   )
   if (pages.length === 0) throw new Error('MangaDex returned 0 pages')
   return pages
@@ -81,7 +83,7 @@ async function fetchFromMangaDexDirect(chapterId: string): Promise<string[]> {
   )
   const { chapter } = r.data
   const pages: string[] = chapter.data.map(
-    (f: string) => `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/data/${chapter.hash}/${f}`)}`
+    (f: string) => `https://uploads.mangadex.org/data/${chapter.hash}/${f}`
   )
   if (pages.length === 0) throw new Error('MangaDex direct returned 0 pages')
   return pages

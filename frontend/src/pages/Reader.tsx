@@ -155,7 +155,10 @@ export default function Reader() {
     const target = e.currentTarget
     if (!target.dataset.retried) {
       target.dataset.retried = 'true'
+      // Re-fetch fresh CDN URLs (at-home URLs expire after ~15 min)
       reloadPages()
+      // Also force the broken image to retry once pages refresh
+      target.src = target.src.includes('?') ? target.src + '&_r=1' : target.src + '?_r=1'
     }
   }, [reloadPages])
 

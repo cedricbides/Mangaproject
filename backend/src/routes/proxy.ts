@@ -10,7 +10,9 @@ function isAllowedHost(hostname: string): boolean {
     hostname === 'mangadex.org' ||
     hostname.endsWith('.mangadex.network') ||
     hostname === 'meo.comick.pictures' ||
-    hostname.endsWith('.comick.pictures')
+    hostname === 'meo2.comick.pictures' ||
+    hostname.endsWith('.comick.pictures') ||
+    /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) // IPv4 at-home CDN nodes
   )
 }
 

@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+﻿import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
@@ -50,8 +50,6 @@ app.set('trust proxy', 1)
 app.use(compression())
 
 app.use(helmet({
-  // Default is same-origin; that blocks <img> / canvas use when the page is on
-  // another host (e.g. Vercel) and assets are served from Render (cross-site).
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
     directives: {
@@ -141,11 +139,13 @@ app.use('/api/auth/resend-verification', rateLimit({
   skip: () => isDev,
 }))
 
+// FIX 1: sameSite 'none' in production so CSRF cookie works cross-site
+// (frontend is on mangaproject-frontend.onrender.com, backend on mangaproject.onrender.com)
 const { generateToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => process.env.SESSION_SECRET || 'dev_secret_change_me',
   cookieName: 'x-csrf-token',
   cookieOptions: {
-    sameSite: 'lax' as const,
+    sameSite: isDev ? 'lax' as const : 'none' as const,
     secure: isDev ? false : true,
     httpOnly: true,
   },
@@ -157,6 +157,7 @@ app.get('/api/csrf-token', (req, res) => {
   res.json({ token: generateToken(req, res) })
 })
 
+// FIX 2: sameSite 'none' in production so session cookie works cross-site
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
   resave: false,
@@ -165,6 +166,7 @@ app.use(session({
   cookie: {
     secure: isDev ? false : true,
     httpOnly: true,
+    sameSite: isDev ? 'lax' : 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }))
