@@ -100,14 +100,20 @@ function fromMdxManga(m: Manga) {
   }
 }
 
-function timeAgo(dateStr: string): string {
+// FIX 5: Handle null/undefined dates and future dates (MangaDex uses future publishAt for scheduled chapters)
+function timeAgo(dateStr: string | undefined | null): string {
+  if (!dateStr) return ''
   const diff = Date.now() - new Date(dateStr).getTime()
+  if (isNaN(diff) || diff < 0) return 'Just now'
   const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
   if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return `${hrs} hour${hrs !== 1 ? 's' : ''} ago`
   const days = Math.floor(hrs / 24)
-  return `${days} day${days !== 1 ? 's' : ''} ago`
+  if (days < 30) return `${days} day${days !== 1 ? 's' : ''} ago`
+  const months = Math.floor(days / 30)
+  return `${months} month${months !== 1 ? 's' : ''} ago`
 }
 
 // Horizontal scroll carousel

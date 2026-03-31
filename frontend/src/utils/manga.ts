@@ -1,8 +1,11 @@
 import type { Manga, MangaCoverArt, MangaRelationship } from '@/types'
 
-const API_BASE = 'https://mangaproject.onrender.com'
+// FIX 3: Use relative URL so requests go through the Vite proxy (dev) or nginx (prod)
+// instead of being hardcoded to the Render backend URL.
+// This means images and API calls will still work even if the backend URL changes.
+const API_BASE = ''
 
-export const MANGADEX_BASE = `${API_BASE}/api/mangadex`
+export const MANGADEX_BASE = `/api/mangadex`
 export const MANGADEX_UPLOADS = 'https://uploads.mangadex.org'
 
 export function getCoverUrl(manga: Manga, size: 256 | 512 | null = 256): string {
@@ -15,7 +18,7 @@ export function getCoverUrl(manga: Manga, size: 256 | 512 | null = 256): string 
 
   const suffix = size ? `.${size}.jpg` : ''
   const url = `https://uploads.mangadex.org/covers/${manga.id}/${fileName}${suffix}`
-  return `${API_BASE}/api/proxy/image?url=${encodeURIComponent(url)}`
+  return `/api/proxy/image?url=${encodeURIComponent(url)}`
 }
 
 export function getMangaTitle(manga: Manga): string {
