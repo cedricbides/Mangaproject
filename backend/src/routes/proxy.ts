@@ -10,9 +10,7 @@ function isAllowedHost(hostname: string): boolean {
     hostname === 'mangadex.org' ||
     hostname.endsWith('.mangadex.network') ||
     hostname === 'meo.comick.pictures' ||
-    hostname === 'meo2.comick.pictures' ||
-    hostname.endsWith('.comick.pictures') ||
-    /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) // IPv4 at-home CDN nodes
+    hostname.endsWith('.comick.pictures')
   )
 }
 
@@ -98,8 +96,11 @@ router.get('/image', async (req: Request, res: Response) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     response.data.pipe(res)
   } catch (err: any) {
-    const status = err.response?.status || 500
-    res.status(status).json({ error: `Failed to fetch image: ${err.message}` })
+    const upstreamStatus = err.response?.status
+    // Don't forward upstream 404 as-is — it's misleading (the proxy route exists,
+    // the upstream CDN URL just expired). Return 502 for all upstream failures.
+    const status = upstreamStatus === 404 ? 502 : (upstreamStatus || 500)
+    res.status(status).json({ error: `Failed to fetch image: ${err.message}`, upstreamStatus })
   }
 })
 

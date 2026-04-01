@@ -28,6 +28,7 @@ export default function Reader() {
   const [currentPage, setCurrentPage] = useState(0)
   const objectUrlsRef = useRef<string[]>([])
   const preloadedRef = useRef<Set<number>>(new Set())
+  const reloadAttempted = useRef(false)
 
   useEffect(() => {
     return () => { objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url)) }
@@ -50,6 +51,7 @@ export default function Reader() {
     setLoading(true)
     setIsOffline(false)
     preloadedRef.current = new Set()
+    reloadAttempted.current = false
     objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
     objectUrlsRef.current = []
 
@@ -153,12 +155,10 @@ export default function Reader() {
 
   const handleImgError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.currentTarget
-    if (!target.dataset.retried) {
-      target.dataset.retried = 'true'
-      // Re-fetch fresh CDN URLs (at-home URLs expire after ~15 min)
+    target.dataset.retried = 'true' // prevent this specific img from re-triggering
+    if (!reloadAttempted.current) {
+      reloadAttempted.current = true // only reload once total across all broken images
       reloadPages()
-      // Also force the broken image to retry once pages refresh
-      target.src = target.src.includes('?') ? target.src + '&_r=1' : target.src + '?_r=1'
     }
   }, [reloadPages])
 

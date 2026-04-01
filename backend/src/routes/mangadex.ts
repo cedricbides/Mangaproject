@@ -375,6 +375,7 @@ router.get('/chapter-pages/:chapterId', async (req: Request, res: Response) => {
   try {
     const { chapterId } = req.params
     const result = await getChapterPages(chapterId)
+    res.setHeader('Cache-Control', 'no-store') // at-home CDN URLs expire ~15min, never cache
     res.json({
       pages: result.pages,
       meta: {
