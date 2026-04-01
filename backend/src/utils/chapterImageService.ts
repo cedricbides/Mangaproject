@@ -5,6 +5,9 @@
  * If a source fails (or returns 0 pages), the next one is tried automatically.
  * A duplicate checker runs on every result before returning.
  *
+ * IMPORTANT: Cache TTL is kept SHORT (30-60 seconds max) because MangaDex at-home
+ * CDN URLs expire after ~15 minutes. Caching for too long = serving expired URLs.
+ *
  * Priority:
  *   1. MangaDex at-home CDN      → api.mangadex.org/at-home/server/:chapterId
  *   2. MangaDex direct CDN       → uploads.mangadex.org (independent hostname)
@@ -20,6 +23,30 @@ export interface ChapterPageResult {
   source: string            // which API succeeded
   totalFetched: number      // before dedup
   duplicatesRemoved: number
+  fetchedAt?: number        // timestamp for debugging URL freshness
+}
+
+// ─────────────────────────────────────────────
+// In-memory cache for chapter URLs (SHORT TTL)
+// ─────────────────────────────────────────────
+const _chapterCache = new Map<string, { data: any; exp: number>>()
+
+function cacheGetChapter(k: string) {
+  const e = _chapterCache.get(k)
+  if (!e) return null
+  if (Date.now() > e.exp) { 
+    _chapterCache.delete(k)
+    console.log(`[ChapterCache] Expired cache for ${k}`)
+    return null 
+  }
+  console.log(`[ChapterCache] HIT for ${k}`)
+  return e.data
+}
+
+function cacheSetChapter(k: string, data: any, ttl = 30_000) {  // 30 sec default
+  if (_chapterCache.size >= 100) _chapterCache.delete(_chapterCache.keys().next().value!)
+  _chapterCache.set(k, { data, exp: Date.now() + ttl })
+  console.log(`[ChapterCache] SET ${k} with TTL=${ttl}ms`)
 }
 
 // ─────────────────────────────────────────────
@@ -200,7 +227,8 @@ async function fetchFromMangaFire(chapterId: string): Promise<string[]> {
 
   const html: string = lookupRes.data?.html ?? lookupRes.data ?? ''
   // MangaFire returns img tags — extract src attributes
-  const matches = [...html.matchAll(/src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi)]
+  const matches = [...html.matchAll(/src=["']([^"']+
+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi)]
   if (matches.length === 0) throw new Error('MangaFire: no images found in response')
 
   const pages: string[] = matches.map((m) => {
@@ -224,6 +252,12 @@ const SOURCES = [
 
 export async function getChapterPages(chapterId: string): Promise<ChapterPageResult> {
   const errors: string[] = []
+  
+  // Check short-lived cache first (only 30 sec)
+  const cached = cacheGetChapter(`chapter:${chapterId}`)
+  if (cached) {
+    return { ...cached, fetchedAt: Date.now() }
+  }
 
   for (const source of SOURCES) {
     try {
@@ -235,12 +269,18 @@ export async function getChapterPages(chapterId: string): Promise<ChapterPageRes
         `[ChapterImages] ${source.name} succeeded — ${raw.length} pages fetched, ${removed} duplicates removed`
       )
 
-      return {
+      const result: ChapterPageResult = {
         pages: unique,
         source: source.name,
         totalFetched: raw.length,
         duplicatesRemoved: removed,
+        fetchedAt: Date.now(),
       }
+      
+      // Cache for only 30 seconds since MangaDex at-home URLs expire after ~15 min
+      cacheSetChapter(`chapter:${chapterId}`, result, 30_000)
+
+      return result
     } catch (err: any) {
       const msg = err.response?.data?.message ?? err.message ?? 'unknown error'
       console.warn(`[ChapterImages] ${source.name} failed: ${msg}`)
