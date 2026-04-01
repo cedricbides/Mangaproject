@@ -145,19 +145,27 @@ export default function Reader() {
     return () => window.removeEventListener('keydown', handler)
   }, [settings, currentPage, pages.length, nextChapterId, prevChapterId, goToPage, step])
 
-  // ── Retry: re-fetch fresh CDN URLs if an image 404s (at-home URLs expire) ───
+  // ── Retry: re-fetch fresh CDN URLs if an image errors (at-home URLs expire ~15 min) ──
   const reloadPages = useCallback(() => {
     if (!chapterId) return
     axios.get(`/api/mangadex/chapter-pages/${chapterId}`)
-      .then(res => setPages(res.data.pages || []))
+      .then(res => {
+        setPages(res.data.pages || [])
+        // After fresh URLs arrive, allow one more retry cycle in case the new
+        // batch also has issues (e.g. slow CDN propagation). Reset after 8 s to
+        // avoid hammering the API on a genuinely broken chapter.
+        setTimeout(() => { reloadAttempted.current = false }, 8_000)
+      })
       .catch(() => {})
   }, [chapterId])
 
   const handleImgError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.currentTarget
-    target.dataset.retried = 'true' // prevent this specific img from re-triggering
+    // Prevent this specific <img> element from firing again after its own retry
+    if (target.dataset.retried === 'true') return
+    target.dataset.retried = 'true'
     if (!reloadAttempted.current) {
-      reloadAttempted.current = true // only reload once total across all broken images
+      reloadAttempted.current = true // only one bulk-reload at a time
       reloadPages()
     }
   }, [reloadPages])

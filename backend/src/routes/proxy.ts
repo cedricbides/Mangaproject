@@ -97,9 +97,16 @@ router.get('/image', async (req: Request, res: Response) => {
     response.data.pipe(res)
   } catch (err: any) {
     const upstreamStatus = err.response?.status
-    // Don't forward upstream 404 as-is — it's misleading (the proxy route exists,
-    // the upstream CDN URL just expired). Return 502 for all upstream failures.
-    const status = upstreamStatus === 404 ? 502 : (upstreamStatus || 500)
+    // For 404 errors on MangaDex network URLs (which expire), return 410 Gone
+    // with a signal to frontend to refresh chapter-pages endpoint
+    if (upstreamStatus === 404 && parsed.hostname.includes('mangadex')) {
+      return res.status(410).json({ 
+        error: 'Image URL expired (MangaDex CDN URLs expire after ~15 min)',
+        upstreamStatus: 404,
+        requiresRefresh: true,
+      })
+    }
+    const status = upstreamStatus || 500
     res.status(status).json({ error: `Failed to fetch image: ${err.message}`, upstreamStatus })
   }
 })
