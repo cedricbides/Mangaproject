@@ -59,8 +59,10 @@ function cacheSetChapter(k: string, data: any, ttl = 30_000) {  // 30 sec defaul
 // this avoids CORS issues, regional blocks, and
 // lets the backend handle CDN URL expiry.
 // ─────────────────────────────────────────────
+const BACKEND_URL = process.env.BACKEND_PUBLIC_URL ?? ''
+
 function toProxyUrl(rawUrl: string): string {
-  return `/api/proxy/image?url=${encodeURIComponent(rawUrl)}`
+  return `${BACKEND_URL}/api/proxy/image?url=${encodeURIComponent(rawUrl)}`
 }
 
 // ─────────────────────────────────────────────
