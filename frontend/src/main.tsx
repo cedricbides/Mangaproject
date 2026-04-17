@@ -7,6 +7,7 @@ import './index.css'
 import { initCsrf, getCsrfToken } from './utils/csrf'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL ?? ''
+axios.defaults.withCredentials = true
 
 axios.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase()

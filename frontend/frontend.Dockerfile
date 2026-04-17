@@ -3,10 +3,25 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# VITE_API_URL must be passed at build time so Vite bakes the backend URL
+
+# into the bundle. On Render/separate services the nginx proxy to
+
+# mangaverse-backend:5000 does not work — the Docker internal hostname only
+
+# exists inside Docker Compose, not across Render isolated containers.
+
+# Build command: docker build --build-arg VITE_API_URL=https://mangaproject.onrender.com .
+
+# On Render dashboard: set VITE_API_URL in the build environment variables.
+
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 RUN npx vite build
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-RUN echo 'server { listen 80; root /usr/share/nginx/html; index index.html; location / { try_files $uri $uri/ /index.html; } location /api { proxy_pass http://mangaverse-backend:5000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; } location /auth { proxy_pass http://mangaverse-backend:5000; proxy_set_header Host $host; } location /uploads { proxy_pass http://mangaverse-backend:5000; proxy_set_header Host $host; } }' > /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

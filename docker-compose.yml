@@ -1,28 +1,6 @@
 version: '3.9'
 
 services:
-  # ── MongoDB ────────────────────────────────────────────────────────────────
-  mongo:
-    image: mongo:7
-    container_name: mangaverse-mongo
-    restart: unless-stopped
-    # Cap WiredTiger cache to 256 MB — default is 50% of RAM which kills a 1GB server
-    command: --wiredTigerCacheSizeGB 0.25
-    mem_limit: 350m
-    memswap_limit: 350m
-    ports:
-      - '27017:27017'
-    volumes:
-      - mongo-data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: mangaverse
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   # ── Backend ────────────────────────────────────────────────────────────────
   backend:
     container_name: mangaverse-backend
@@ -34,9 +12,6 @@ services:
     memswap_limit: 350m
     ports:
       - '5000:5000'
-    depends_on:
-      mongo:
-        condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 5000
@@ -71,5 +46,4 @@ services:
       - backend
 
 volumes:
-  mongo-data:
   uploads:

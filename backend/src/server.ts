@@ -95,7 +95,7 @@ app.use((req, _res, next) => {
   function sanitize(obj: any): any {
     if (!obj || typeof obj !== 'object') return obj
     for (const key of Object.keys(obj)) {
-      if (key.startsWith('$') || key.includes('.')) {
+      if (key.startsWith('$')) {
         delete obj[key]
       } else {
         obj[key] = sanitize(obj[key])
