@@ -28,6 +28,7 @@ import AdminAnnouncementScheduler from '@/components/admin/AdminAnnouncementSche
 import AdminSEOEditor from '@/components/admin/AdminSEOEditor'
 import AdminBackupRestore from '@/components/admin/AdminBackupRestore'
 import AdminPermissionManager from '@/components/admin/AdminPermissionManager'
+import { mediaUrl } from '@/utils/mediaUrl'
 
 const MD = '/api/mangadex'
 
@@ -816,7 +817,7 @@ export default function Admin() {
                         <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                         </div>
-                        <img src={manga.coverUrl} alt="" className="w-7 h-9 object-cover rounded-lg flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
+                        <img src={mediaUrl(manga.coverUrl)} alt="" className="w-7 h-9 object-cover rounded-lg flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
                           loading="lazy" onError={e => (e.currentTarget.src = 'https://placehold.co/28x36/1a1a2e/white?text=?')} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-text font-body truncate">{manga.title}</p>
@@ -989,7 +990,7 @@ export default function Admin() {
                         <div key={manga._id} className={`glass rounded-2xl overflow-hidden transition-all duration-700 border ${newlyDetected.has(manga._id) ? 'ring-1 ring-emerald-400/40 bg-emerald-500/5 border-emerald-500/20' : 'border-white/5 hover:border-white/10'}`}>
                           <div className="flex items-center gap-4 p-4">
                             <div className="relative flex-shrink-0">
-                              <img src={manga.coverUrl} alt={manga.title} className="w-12 h-16 object-cover rounded-xl"
+                              <img src={mediaUrl(manga.coverUrl)} alt={manga.title} className="w-12 h-16 object-cover rounded-xl"
                                 loading="lazy" onError={e => (e.currentTarget.src = 'https://placehold.co/48x64/1a1a2e/white?text=No+Cover')} />
                               <span className="absolute -top-1 -left-1 text-[8px] px-1 py-0.5 bg-amber-500/90 text-white rounded font-body">Manual</span>
                             </div>
@@ -1133,7 +1134,7 @@ export default function Admin() {
                       <div key={item.mangaDexId} className="glass rounded-2xl overflow-hidden border border-violet-500/15 hover:border-violet-500/30 transition-all">
                         <div className="flex items-center gap-4 p-4">
                           {item.coverUrl ? (
-                            <img src={item.coverUrl} alt={item.title}
+                            <img src={mediaUrl(item.coverUrl)} alt={item.title}
                               className="w-10 h-14 object-cover rounded-xl flex-shrink-0"
                               loading="lazy" onError={e => (e.currentTarget.style.display = 'none')} />
                           ) : (
@@ -2292,7 +2293,7 @@ function MangaFormModal({ manga, onClose, onSave }: {
               <input value={coverUrl} onChange={e => setCoverUrl(e.target.value)}
                 placeholder="https://example.com/cover.jpg"
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-text font-body outline-none focus:border-primary/40" />
-              {coverUrl && <img src={coverUrl} className="w-10 h-14 object-cover rounded-lg flex-shrink-0" loading="lazy" onError={e => e.currentTarget.style.display='none'} />}
+              {coverUrl && <img src={mediaUrl(coverUrl)} className="w-10 h-14 object-cover rounded-lg flex-shrink-0" loading="lazy" onError={e => e.currentTarget.style.display='none'} />}
             </div>
           </div>
           <div className="sm:col-span-2">
@@ -2483,7 +2484,7 @@ function ChapterFormModal({ mangaId, existingChapters = [], onClose, onSave }: {
                   ? <p className="col-span-4 text-xs text-text-muted text-center py-6 font-body">No pages yet</p>
                   : pages.map((url, i) => (
                     <div key={i} className="relative">
-                      <img src={url} alt={`Page ${i+1}`} className="w-full h-20 object-cover rounded-lg"
+                      <img src={mediaUrl(url)} alt={`Page ${i+1}`} className="w-full h-20 object-cover rounded-lg"
                         loading="lazy" onError={e => { e.currentTarget.src = 'https://placehold.co/80x112/1a1a2e/red?text=ERR' }} />
                       <span className="absolute bottom-1 right-1 text-xs bg-black/60 text-white px-1 rounded">{i+1}</span>
                     </div>
@@ -2880,7 +2881,7 @@ function SiteSettingsTab({
                   }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-left border-b border-white/5 last:border-0">
                     {item.coverUrl
-                      ? <img src={item.coverUrl} className="w-8 h-10 rounded object-cover flex-shrink-0"  loading="lazy"/>
+                      ? <img src={mediaUrl(item.coverUrl)} className="w-8 h-10 rounded object-cover flex-shrink-0"  loading="lazy"/>
                       : <div className="w-8 h-10 rounded bg-white/10 flex-shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text font-body truncate">{item.title}</p>
@@ -2910,7 +2911,7 @@ function SiteSettingsTab({
                   <div key={pick.mangaId} className={`flex items-center gap-3 glass px-3 py-2.5 rounded-xl border ${expired ? 'border-red-500/40 opacity-60' : 'border-white/5'}`}>
                     <GripVertical size={14} className="text-text-muted/40 flex-shrink-0" />
                     {pick.coverUrl
-                      ? <img src={pick.coverUrl} className="w-8 h-10 rounded object-cover flex-shrink-0"  loading="lazy"/>
+                      ? <img src={mediaUrl(pick.coverUrl)} className="w-8 h-10 rounded object-cover flex-shrink-0"  loading="lazy"/>
                       : <div className="w-8 h-10 rounded bg-white/10 flex-shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text font-body truncate">{pick.title}</p>

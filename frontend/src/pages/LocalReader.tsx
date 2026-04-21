@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ArrowLeft, Settings } from 'lucide-react'
 import axios from 'axios'
 import type { LocalChapter } from '@/types'
 import { useReaderSettings, BG_CLASSES } from '../hooks/useReaderSettings'
+import { mediaUrl } from '@/utils/mediaUrl'
 import { useReadingProgress } from '../hooks/useReadingProgress'
 import ChapterComments from '../components/ChapterComments'
 import ReaderSettingsPanel from '../components/ReaderSettingsPanel'
@@ -69,7 +70,7 @@ export default function LocalReader() {
       const next = clamped + i
       if (next < pages.length && !preloadedRef.current.has(next)) {
         preloadedRef.current.add(next)
-        const img = new Image(); img.src = pages[next]
+        const img = new Image(); img.src = mediaUrl(pages[next])
       }
     }
   }, [pages, chapterId, trackProgress])
@@ -142,7 +143,7 @@ export default function LocalReader() {
             </div>
           ) : (
             pages.map((src, i) => (
-              <img key={i} src={src} alt={`Page ${i + 1}`} className="block w-full max-w-3xl" loading="lazy" />
+              <img key={i} src={mediaUrl(src)} alt={`Page ${i + 1}`} className="block w-full max-w-3xl" loading="lazy" />
             ))
           )}
           {chapterId && chapter && (
@@ -182,7 +183,7 @@ export default function LocalReader() {
               }
             }}>
             {pages[page] && (
-              <img src={pages[page]} alt={`Page ${page + 1}`}
+              <img src={mediaUrl(pages[page])} alt={`Page ${page + 1}`}
                 className={`object-contain ${
                   settings.fit === 'width' ? 'w-full max-w-3xl' :
                   settings.fit === 'height' ? 'h-[calc(100vh-120px)] w-auto' :
