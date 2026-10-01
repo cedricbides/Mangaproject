@@ -6,8 +6,9 @@ import type { Manga } from '@/types'
 import MangaCard from '@/components/MangaCard'
 import { GridSkeleton } from '@/components/Skeleton'
 import { useAuth } from '@/context/AuthContext'
+import { MANGADEX_BASE } from '@/utils/manga'
 
-const MD = 'https://mangaproject.onrender.com/api/mangadex'
+const MD = MANGADEX_BASE
 
 export default function Favorites() {
   const { user } = useAuth()

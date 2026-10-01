@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { BookOpen, Clock, Star, TrendingUp, Calendar, Award, ArrowLeft } from 'lucide-react'
 import axios from 'axios'
+import { MANGADEX_BASE } from '@/utils/manga'
 
 interface StatCard { label: string; value: string | number; sub?: string; icon: React.ReactNode; color: string }
 
@@ -50,7 +51,7 @@ export default function Stats() {
     if (!mdxHistory.length) return
     setLoadingGenres(true)
     const mangaIds = [...new Set(mdxHistory.map(h => h.mangaId))].slice(0, 20)
-    axios.get(`https://mangaproject.onrender.com/api/mangadex/manga?ids[]=${mangaIds.join('&ids[]=')}&limit=20`)
+    axios.get(`${MANGADEX_BASE}/manga?ids[]=${mangaIds.join('&ids[]=')}&limit=20`)
       .then(res => {
         const counts: Record<string, number> = {}
         for (const m of res.data.data) {

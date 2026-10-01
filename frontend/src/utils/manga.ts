@@ -1,9 +1,8 @@
 import type { Manga, MangaCoverArt, MangaRelationship } from '@/types'
 
-// Keep hardcoded backend URL — on Render, the frontend nginx proxies to a Docker
-// internal hostname (mangaverse-backend:5000) that doesn't exist, so relative
-// paths don't work. Direct backend URL is correct for Render deployment.
-const API_BASE = 'https://mangaproject.onrender.com'
+// Backend base URL. Production (Render) sets VITE_API_URL at build time.
+// Locally it's empty, so requests go through the Vite proxy to localhost:5000.
+const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
 export const MANGADEX_BASE = `${API_BASE}/api/mangadex`
 export const MANGADEX_UPLOADS = 'https://uploads.mangadex.org'

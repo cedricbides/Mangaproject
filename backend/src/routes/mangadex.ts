@@ -1,4 +1,4 @@
-﻿import { Router, Request, Response } from 'express'
+import { Router, Request, Response } from 'express'
 import axios from 'axios'
 
 import TrackedMangaDex from '../models/TrackedMangaDex'
@@ -10,11 +10,30 @@ import { requireAdmin } from '../middleware/auth'
 
 // ── In-memory API cache (5 min TTL, max 300 entries) ─────────────────────────
 const _cache = new Map<string, { data: any; exp: number }>()
-function cacheGet(k: string) {
+function cacheGet(k: string, allowStale = false) {
   const e = _cache.get(k)
   if (!e) return null
-  if (Date.now() > e.exp) { _cache.delete(k); return null }
+  if (Date.now() > e.exp) {
+    if (allowStale) return e.data   // expired but better than an error
+    _cache.delete(k)
+    return null
+  }
   return e.data
+}
+
+// GET with one retry on network errors / 5xx (no response from upstream)
+async function mdGet(url: string, params: any, timeout = 10000): Promise<any> {
+  const run = () => axios.get(url, { params, headers: { 'User-Agent': 'MangaVerse/1.0' }, timeout })
+  try {
+    return await run()
+  } catch (err: any) {
+    const status = err.response?.status
+    if (!status || status >= 500) {
+      await new Promise(r => setTimeout(r, 800))
+      return await run()
+    }
+    throw err
+  }
 }
 function cacheSet(k: string, data: any, ttl = 300_000) {
   if (_cache.size >= 300) _cache.delete(_cache.keys().next().value!)
@@ -591,20 +610,27 @@ router.get('/*', async (req: Request, res: Response) => {
       res.setHeader('Cache-Control', 'public, max-age=300')
       return res.json(cached)
     }
-    const response = await axios.get(`${MD}/${path}`, {
-      params: req.query,
-      headers: { 'User-Agent': 'MangaVerse/1.0' },
-      timeout: 10000,
-    })
+    const response = await mdGet(`${MD}/${path}`, req.query)
     cacheSet(key, response.data)
     res.setHeader('X-Cache', 'MISS')
     res.setHeader('Cache-Control', 'public, max-age=300')
     res.json(response.data)
   } catch (err: any) {
-    const status = err.response?.status || 500
-    const message = err.response?.data || { message: 'MangaDex API error' }
-    res.status(status).json(message)
+    const reqPath = req.params[0]
+    console.error(`[mangadex proxy] /${reqPath} failed:`, err.response?.status ?? err.code ?? 'NO_RESPONSE', err.message)
+    // Serve stale cached data if we have it
+    try {
+      const k = `${reqPath}?${new URLSearchParams(req.query as any).toString()}`
+      const stale = cacheGet(k, true)
+      if (stale && !/^manga\/[^/]+\/feed$/.test(reqPath)) {
+        res.setHeader('X-Cache', 'STALE')
+        return res.json(stale)
+      }
+    } catch {}
+    if (err.response) {
+      return res.status(err.response.status).json(err.response.data || { message: 'MangaDex API error' })
+    }
+    // No response at all: timeout / DNS / connection blocked
+    res.status(502).json({ message: 'MangaDex API error', reason: err.code || 'NO_RESPONSE' })
   }
 })
-
-export default router

@@ -4,12 +4,12 @@ import { Search, X, Grid3X3, List, TrendingUp, Star, BookOpen, Zap } from 'lucid
 import axios from 'axios'
 import { useQuery } from '@tanstack/react-query'
 import type { Manga, LocalManga } from '@/types'
-import { getCoverUrl, getMangaTitle, getMangaTags } from '@/utils/manga'
+import { getCoverUrl, getMangaTitle, getMangaTags, MANGADEX_BASE } from '@/utils/manga'
 import { GridSkeleton } from '@/components/Skeleton'
 import { motion } from 'framer-motion'
 import { QK, fetchLocalManga } from '@/utils/queries'
 
-const MD = 'https://mangaproject.onrender.com/api/mangadex'
+const MD = MANGADEX_BASE
 
 const ALL_GENRES = [
   'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
