@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Flame, Star, ChevronLeft, ChevronRight, MessageSquare, BookOpen } from 'lucide-react'
 import axios from 'axios'
 import type { Manga } from '@/types'
-import { getCoverUrl, getMangaTitle, getMangaTags, getMangaDescription } from '@/utils/manga'
+import { getCoverUrl, getMangaTitle, getMangaTags, getMangaDescription, API_BASE } from '@/utils/manga'
 import { useAuth } from '@/context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -79,7 +79,7 @@ async function resolveHeroData(item: any): Promise<{
     const title = titles.en || titles['ja-ro'] || Object.values(titles)[0] as string || ''
     const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
     const coverFile = coverRel?.attributes?.fileName
-    const cover = coverFile ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.512.jpg`)}`  : ''
+    const cover = coverFile ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.512.jpg`)}`  : ''
     const desc = Object.values(m.attributes?.description || {})[0] as string || ''
     const tags = (m.attributes?.tags || []).slice(0, 4).map((t: any) =>
       t.attributes?.name?.en || Object.values(t.attributes?.name || {})[0] || ''
@@ -310,7 +310,7 @@ export default function Home() {
           const title = m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] as string || 'Unknown'
           const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
           const cover = coverRel?.attributes?.fileName
-            ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}`  : ''
+            ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}`  : ''
           const chNum = ch.attributes?.chapter ? `Ch. ${ch.attributes.chapter}` : 'Chapter'
           return { mangaId: h.mangaId, chapterId: h.chapterId, title, cover, chapterNum: chNum }
         } catch { return null }
@@ -468,7 +468,7 @@ export default function Home() {
                 const title = attrs.title?.en || Object.values(attrs.title || {})[0] as string || 'Unknown'
                 const coverRel = manga.relationships?.find((r: any) => r.type === 'cover_art') as any
                 const cover = coverRel?.attributes?.fileName
-                  ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${manga.id}/${coverRel.attributes.fileName}.256.jpg`)}` 
+                  ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${manga.id}/${coverRel.attributes.fileName}.256.jpg`)}` 
                   : null
                 const firstCh = chapters[0]
                 const groupRel = firstCh?.relationships?.find((r: any) => r.type === 'scanlation_group')

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react'
 import axios from 'axios'
+import { API_BASE } from '@/utils/manga'
 
 const MD = '/api/mangadex'
 
@@ -109,7 +110,7 @@ export default function RecommendedManga({ mangadexId, tags, localGenres, exclud
           .map((m: any) => {
             const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
             const cover = coverRel?.attributes?.fileName
-              ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}`
+              ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverRel.attributes.fileName}.256.jpg`)}`
               : ''
             return {
               id: m.id,

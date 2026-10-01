@@ -18,7 +18,7 @@ import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
 
 import type { LocalManga, LocalChapter, Manga } from '@/types'
-import { getCoverUrl, getMangaTitle, getMangaTags } from '@/utils/manga'
+import { getCoverUrl, getMangaTitle, getMangaTags, API_BASE } from '@/utils/manga'
 import AdminBulkManager from '@/components/admin/AdminBulkManager'
 import AdminChapterScheduler from '@/components/admin/AdminChapterScheduler'
 import AdminActivityLog from '@/components/admin/AdminActivityLog'
@@ -453,7 +453,7 @@ export default function Admin() {
       const mdx = (mdxRes.data.data || []).map((m: any) => {
         const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
         const coverFile = coverRel?.attributes?.fileName
-        const cover = coverFile ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.256.jpg`)}`  : ''
+        const cover = coverFile ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.256.jpg`)}`  : ''
         const titles = m.attributes?.title || {}
         return { id: m.id, title: titles.en || Object.values(titles)[0] || 'Unknown', coverUrl: cover, type: 'mangadex' }
       })
@@ -2628,7 +2628,7 @@ function SiteSettingsTab({
         ? (mdxRes.value.data.data || []).map((m: any) => {
             const coverRel = m.relationships?.find((r: any) => r.type === 'cover_art')
             const coverFile = coverRel?.attributes?.fileName
-            const cover = coverFile ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.256.jpg`)}`  : ''
+            const cover = coverFile ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${coverFile}.256.jpg`)}`  : ''
             const titles = m.attributes?.title || {}
             return { id: m.id, title: titles.en || Object.values(titles)[0] || 'Unknown', coverUrl: cover, type: 'mangadex' }
           })

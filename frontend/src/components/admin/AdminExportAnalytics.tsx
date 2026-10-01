@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Download, FileText, Users, BookOpen, MessageSquare, Star, Check } from 'lucide-react'
+import { API_BASE } from '@/utils/manga'
 
 type ExportType = 'manga' | 'users' | 'chapters' | 'comments' | 'reviews'
 
@@ -26,7 +27,7 @@ export default function AdminExportAnalytics() {
   async function download(type: ExportType) {
     setDownloading(type)
     try {
-      const response = await fetch(`/api/admin/export/${type}`, { credentials: 'include' })
+      const response = await fetch(`${API_BASE}/api/admin/export/${type}`, { credentials: 'include' })
       if (!response.ok) throw new Error('Export failed')
 
       const blob = await response.blob()

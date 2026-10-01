@@ -4,6 +4,7 @@ import { useReadingList, type ReadingStatus, type ReadingEntry } from '@/hooks/u
 import { useAuth } from '@/context/AuthContext'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { API_BASE } from '@/utils/manga'
 
 const STATUS_CONFIG: Record<ReadingStatus, { label: string; icon: React.ElementType; color: string; bg: string; border: string }> = {
   reading:      { label: 'Reading',      icon: BookOpen,     color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-500/30' },
@@ -33,7 +34,7 @@ function MangaCard({ entry, onRemove }: { entry: ReadingEntry; onRemove: () => v
         const cover = data.relationships.find((r: any) => r.type === 'cover_art')
         const fileName = cover?.attributes?.fileName
         const coverUrl = fileName
-          ? `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${entry.mangaId}/${fileName}.256.jpg`)}` 
+          ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${entry.mangaId}/${fileName}.256.jpg`)}` 
           : '/no-cover.png'
         setManga({ id: entry.mangaId, title: title as string, cover: coverUrl })
       })

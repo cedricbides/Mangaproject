@@ -6,6 +6,7 @@ import { useReaderSettings, BG_CLASSES } from '../hooks/useReaderSettings'
 import { useReadingProgress } from '../hooks/useReadingProgress'
 import ChapterComments from '../components/ChapterComments'
 import ReaderSettingsPanel from '../components/ReaderSettingsPanel'
+import { API_BASE } from '@/utils/manga'
 
 interface ManualChapter {
   _id: string
@@ -22,7 +23,7 @@ interface ManualChapter {
 function proxyUrl(url: string): string {
   if (!url) return url
   if (url.startsWith('/') || url.startsWith(window.location.origin)) return url
-  return `/api/proxy/image?url=${encodeURIComponent(url)}`
+  return `${API_BASE}/api/proxy/image?url=${encodeURIComponent(url)}`
 }
 
 export default function ManualReader() {

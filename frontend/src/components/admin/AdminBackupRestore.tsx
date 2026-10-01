@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Download, Upload, AlertTriangle, Check, Database, RefreshCw, X } from 'lucide-react'
+import { API_BASE } from '@/utils/manga'
 
 type Collection = 'localManga' | 'localChapters' | 'trackedMangaDex' | 'mdxChapters' | 'siteSettings'
 
@@ -34,7 +35,7 @@ export default function AdminBackupRestore() {
     setDownloading(true)
     try {
       const cols = [...selectedCollections].join(',')
-      const res = await fetch(`/api/admin/backup/export?collections=${cols}`, { credentials: 'include' })
+      const res = await fetch(`${API_BASE}/api/admin/backup/export?collections=${cols}`, { credentials: 'include' })
       if (!res.ok) throw new Error('Backup failed')
       const blob = await res.blob()
       const disposition = res.headers.get('Content-Disposition') || ''
@@ -57,7 +58,7 @@ export default function AdminBackupRestore() {
     try {
       const text = await file.text()
       const data = JSON.parse(text)
-      const res = await fetch('/api/admin/backup/restore/preview', {
+      const res = await fetch(`${API_BASE}/api/admin/backup/restore/preview`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +76,7 @@ export default function AdminBackupRestore() {
     setRestoring(true)
     try {
       const cols = [...selectedCollections]
-      const res = await fetch('/api/admin/backup/restore', {
+      const res = await fetch(`${API_BASE}/api/admin/backup/restore`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

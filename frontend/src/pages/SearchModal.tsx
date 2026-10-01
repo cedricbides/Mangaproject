@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, X, BookOpen, Loader2, TrendingUp, Clock } from 'lucide-react'
 import axios from 'axios'
+import { API_BASE } from '@/utils/manga'
 
 const MD_COVER = (mangaId: string, filename: string) =>
-  `/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${mangaId}/${filename}.256.jpg`)}` 
+  `${API_BASE}/api/proxy/image?url=${encodeURIComponent(`https://uploads.mangadex.org/covers/${mangaId}/${filename}.256.jpg`)}` 
 
 interface Result {
   id: string
