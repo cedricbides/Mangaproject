@@ -634,3 +634,5 @@ router.get('/*', async (req: Request, res: Response) => {
     res.status(502).json({ message: 'MangaDex API error', reason: err.code || 'NO_RESPONSE' })
   }
 })
+
+export default router
