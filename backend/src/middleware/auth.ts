@@ -1,4 +1,4 @@
-﻿import { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import type { IUser } from '../models/User'
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {

@@ -1,6 +1,3 @@
-// frontend/public/sw.js
-// Place this file at frontend/public/sw.js — Vite will serve it at /sw.js
-
 self.addEventListener('push', (event) => {
   if (!event.data) return
 

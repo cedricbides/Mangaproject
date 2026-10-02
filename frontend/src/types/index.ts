@@ -1,4 +1,4 @@
-﻿export interface MangaTag {
+export interface MangaTag {
   id: string
   attributes: { name: { en: string }; group: string }
 }

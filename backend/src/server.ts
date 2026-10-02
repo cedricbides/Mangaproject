@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv'
+import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
@@ -39,7 +39,7 @@ import mangaRequestsRoutes from './routes/mangaRequests'
 import notificationRoutes from './routes/notifications'
 import readingProgressRoutes from './routes/readingProgress'
 import translateRoutes from './routes/translate'
-import pushRoutes = require('./routes/pushSubscription')
+import pushRoutes from './routes/pushSubscription'
 
 const app = express()
 const PORT = process.env.PORT || 5000

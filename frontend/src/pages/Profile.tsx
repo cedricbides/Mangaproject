@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { User, Heart, Clock, BookOpen, Star, LogOut, Camera, Edit3, Check, X, Trash2, Settings, List, Plus, Lock, Globe, MoreVertical, Pencil, Search, TrendingUp } from 'lucide-react'
 

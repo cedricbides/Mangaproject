@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 import axios from 'axios'
 import type { User } from '@/types'
 

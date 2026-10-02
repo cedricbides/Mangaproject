@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, X, Grid3X3, List, TrendingUp, Star, BookOpen, Zap } from 'lucide-react'
 import axios from 'axios'

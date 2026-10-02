@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IReview extends Document {
   mangaId: string          // MangaDex ID or "local_<id>"

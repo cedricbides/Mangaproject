@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Flame, Star, ChevronLeft, ChevronRight, MessageSquare, BookOpen } from 'lucide-react'
 import axios from 'axios'

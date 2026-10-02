@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import { Star, Edit2, Trash2, X, Flag } from 'lucide-react'
 import axios from 'axios'

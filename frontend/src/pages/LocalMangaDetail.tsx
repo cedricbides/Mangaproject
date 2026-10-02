@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import ReadingListButton from '@/components/ReadingListButton'
 import RatingReviews from '@/components/RatingReviews'
 

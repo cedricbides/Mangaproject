@@ -8,9 +8,5 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
-  },
-  "dependencies": {
-    "connect-mongo": "^6.0.0",
-    "mongodb": "^6.21.0"
   }
 }

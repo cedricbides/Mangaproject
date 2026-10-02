@@ -1,4 +1,4 @@
-﻿let csrfToken = ''
+let csrfToken = ''
 
 export async function initCsrf(): Promise<void> {
   try {

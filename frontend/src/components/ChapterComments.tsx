@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import { MessageCircle, Trash2, Send, ChevronDown, ChevronUp, Heart } from 'lucide-react'
 

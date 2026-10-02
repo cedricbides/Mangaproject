@@ -66,7 +66,7 @@ MangaVerse/
 │       ├── context/        Auth context provider
 │       ├── hooks/          Custom hooks (push, reading progress, online status)
 │       └── utils/          CSRF, manga helpers, offline storage
-├── docker-compose.yml      Full stack: MongoDB + backend + frontend
+├── docker-compose.yml      Backend + frontend (bring your own MongoDB)
 ├── Caddyfile               Reverse proxy config
 └── .github/workflows/      CI pipeline
 ```
@@ -103,7 +103,7 @@ cp backend/.env.example .env
 docker compose up --build
 ```
 
-Starts MongoDB, backend, and frontend together with persistent storage.
+Starts the backend and frontend. MongoDB is not in the compose file, so set MONGODB_URI to Atlas or your own instance.
 
 ---
 
@@ -162,7 +162,7 @@ Notifications
 
 ## Admin Access
 
-The first registered account becomes `superadmin` automatically.
+Accounts registered by email are always `user`. The first account created through Google sign-in becomes `admin`.
 
 To manually set a role in MongoDB:
 ```js

@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -152,7 +152,6 @@ export default function App() {
               <Route path="/favorites"          element={<ProtectedRoute><Layout><Favorites /></Layout></ProtectedRoute>} />
               <Route path="/profile"            element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
               <Route path="/downloads"          element={<ProtectedRoute><Layout><Downloads /></Layout></ProtectedRoute>} />
-              <Route path="/my-downloads"       element={<Navigate to="/downloads" replace />} />
               <Route path="/my-list"            element={<ProtectedRoute><Layout><MyList /></Layout></ProtectedRoute>} />
               <Route path="/stats"              element={<ProtectedRoute><Layout><Stats /></Layout></ProtectedRoute>} />
               <Route path="/login"              element={<Login />} />

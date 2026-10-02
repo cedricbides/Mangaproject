@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Search, Menu, X, BookOpen, LogOut, User, Shield, Heart, Settings, Sun, Moon, BookMarked, WifiOff, Bell, TrendingUp } from 'lucide-react'

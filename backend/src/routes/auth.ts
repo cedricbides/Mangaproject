@@ -1,4 +1,4 @@
-﻿import { Router, Request, Response } from 'express'
+import { Router, Request, Response } from 'express'
 import passport from 'passport'
 import crypto from 'crypto'
 import User from '../models/User'
