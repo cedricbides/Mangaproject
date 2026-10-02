@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { BookOpen, AlertCircle, Mail, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
@@ -17,6 +17,9 @@ export default function Login() {
 
   const { loginWithEmail } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as any)?.from
+  const returnTo = typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') ? from : '/'
 
   const handleSubmit = async () => {
     if (!email || !password) { setError('Email and password are required'); return }
@@ -24,7 +27,7 @@ export default function Login() {
     setLoading(true)
     try {
       await loginWithEmail(email, password, rememberMe)
-      navigate('/')
+      navigate(returnTo, { replace: true })
     } catch (err: any) {
       const data = err?.response?.data
       if (data?.pendingVerification) {
@@ -177,7 +180,7 @@ export default function Login() {
 
         <div className="px-8 py-4 bg-white/5 border-t border-white/10 text-center">
           <span className="text-sm font-body text-text-muted">New user? </span>
-          <Link to="/register" className="text-sm font-body text-primary hover:underline">Register</Link>
+          <Link to="/register" state={location.state} className="text-sm font-body text-primary hover:underline">Register</Link>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { BookOpen, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
@@ -14,6 +14,7 @@ export default function Register() {
 
   const { register } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleSubmit = async () => {
     if (!name.trim()) { setError('Username is required'); return }
@@ -26,7 +27,7 @@ export default function Register() {
     try {
       await register(name.trim(), email, password)
       setSuccess(true)
-      setTimeout(() => navigate('/login'), 2000)
+      setTimeout(() => navigate('/login', { state: location.state }), 2000)
     } catch (err: any) {
       const data = err?.response?.data
       if (err?.response?.status === 403) {
@@ -64,7 +65,7 @@ export default function Register() {
                 Redirecting to login...
               </p>
               <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin mt-2" />
-              <Link to="/login" className="text-sm text-primary hover:underline font-body">
+              <Link to="/login" state={location.state} className="text-sm text-primary hover:underline font-body">
                 Go to Login now →
               </Link>
             </div>
@@ -136,7 +137,7 @@ export default function Register() {
                   </div>
                 )}
 
-                <Link to="/login" className="text-sm text-primary hover:underline font-body text-center">
+                <Link to="/login" state={location.state} className="text-sm text-primary hover:underline font-body text-center">
                   « Back to Login
                 </Link>
 

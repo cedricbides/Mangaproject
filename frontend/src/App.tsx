@@ -145,26 +145,26 @@ export default function App() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/"                   element={<Layout><Home /></Layout>} />
-              <Route path="/browse"             element={<Layout><Browse /></Layout>} />
-              <Route path="/catalog"            element={<Layout><Catalog /></Layout>} />
-              <Route path="/trending"           element={<Layout><Browse /></Layout>} />
-              <Route path="/manga/:id"          element={<Layout><MangaDetail /></Layout>} />
-              <Route path="/read/:chapterId"    element={<Reader />} />
+              <Route path="/browse"             element={<ProtectedRoute><Layout><Browse /></Layout></ProtectedRoute>} />
+              <Route path="/catalog"            element={<ProtectedRoute><Layout><Catalog /></Layout></ProtectedRoute>} />
+              <Route path="/trending"           element={<ProtectedRoute><Layout><Browse /></Layout></ProtectedRoute>} />
+              <Route path="/manga/:id"          element={<ProtectedRoute><Layout><MangaDetail /></Layout></ProtectedRoute>} />
+              <Route path="/read/:chapterId"    element={<ProtectedRoute><Reader /></ProtectedRoute>} />
               <Route path="/favorites"          element={<ProtectedRoute><Layout><Favorites /></Layout></ProtectedRoute>} />
               <Route path="/profile"            element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
-              <Route path="/downloads"          element={<Layout><Downloads /></Layout>} />
+              <Route path="/downloads"          element={<ProtectedRoute><Layout><Downloads /></Layout></ProtectedRoute>} />
               <Route path="/my-downloads"       element={<ProtectedRoute><Layout><MyDownloads /></Layout></ProtectedRoute>} />
-              <Route path="/my-list"            element={<Layout><MyList /></Layout>} />
+              <Route path="/my-list"            element={<ProtectedRoute><Layout><MyList /></Layout></ProtectedRoute>} />
               <Route path="/stats"              element={<ProtectedRoute><Layout><Stats /></Layout></ProtectedRoute>} />
               <Route path="/login"              element={<Login />} />
               <Route path="/register"           element={<Register />} />
               <Route path="/admin"              element={<ProtectedRoute requireAdmin><Layout><Admin /></Layout></ProtectedRoute>} />
-              <Route path="/local/:id"          element={<Layout><LocalMangaDetail /></Layout>} />
-              <Route path="/read/local/:chapterId"  element={<LocalReader />} />
-              <Route path="/read/manual/:chapterId" element={<ManualReader />} />
-              <Route path="/feed"               element={<Layout><Feed /></Layout>} />
-              <Route path="/profile/:userId"    element={<Layout><PublicProfile /></Layout>} />
-              <Route path="/requests"           element={<Layout><MangaRequests /></Layout>} />
+              <Route path="/local/:id"          element={<ProtectedRoute><Layout><LocalMangaDetail /></Layout></ProtectedRoute>} />
+              <Route path="/read/local/:chapterId"  element={<ProtectedRoute><LocalReader /></ProtectedRoute>} />
+              <Route path="/read/manual/:chapterId" element={<ProtectedRoute><ManualReader /></ProtectedRoute>} />
+              <Route path="/feed"               element={<ProtectedRoute><Layout><Feed /></Layout></ProtectedRoute>} />
+              <Route path="/profile/:userId"    element={<ProtectedRoute><Layout><PublicProfile /></Layout></ProtectedRoute>} />
+              <Route path="/requests"           element={<ProtectedRoute><Layout><MangaRequests /></Layout></ProtectedRoute>} />
               <Route path="/verify-email"       element={<VerifyEmail />} />
               <Route path="/forgot-password"    element={<ForgotPassword />} />              <Route path="/reset-password"     element={<ResetPassword />} />
               <Route path="*"                   element={<NotFound />} />

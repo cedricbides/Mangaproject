@@ -1,6 +1,6 @@
 // frontend/src/components/ProtectedRoute.tsx
 // Redirects unauthenticated or unauthorized users at the router level.
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 
 interface Props {
@@ -11,11 +11,15 @@ interface Props {
 
 export default function ProtectedRoute({ children, requireAdmin, requireStaff }: Props) {
   const { user, loading, isAdmin, isStaff } = useAuth()
+  const location = useLocation()
 
   // Wait for auth to load before deciding
   if (loading) return null
 
-  if (!user) return <Navigate to="/login" replace />
+  // Guests must sign up (or log in) first; remember the page they wanted
+  if (!user) {
+    return <Navigate to="/register" replace state={{ from: location.pathname + location.search }} />
+  }
   if (requireAdmin && !isAdmin) return <Navigate to="/" replace />
   if (requireStaff && !isStaff) return <Navigate to="/" replace />
 
