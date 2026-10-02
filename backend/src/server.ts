@@ -9,7 +9,7 @@ import session from 'express-session'
 import MongoStore from 'connect-mongo'
 import mongoose from 'mongoose'
 import path from 'path'
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 import { doubleCsrf } from 'csrf-csrf'
 import passport from 'passport'
@@ -46,6 +46,15 @@ const isDev = process.env.NODE_ENV !== 'production'
 
 app.set('etag', false)
 app.set('trust proxy', 1)
+
+// Real client IP behind Render's proxy chain. With 'trust proxy' = 1, req.ip can be a
+// shared Render/Cloudflare address, which makes per-IP rate limits behave like ONE
+// global limit for every visitor. Prefer the headers the CDN sets with the real IP.
+function clientIp(req: express.Request): string {
+  const h = (req.headers['cf-connecting-ip'] || req.headers['true-client-ip']) as string | undefined
+  return ((h ? h.split(',')[0].trim() : req.ip) || 'unknown')
+}
+const keyGenerator = (req: express.Request) => ipKeyGenerator(clientIp(req))
 
 app.use(compression())
 
@@ -109,30 +118,68 @@ app.use((req, _res, next) => {
 })
 
 app.use('/api', rateLimit({
+  keyGenerator,
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 1000,
   message: { error: 'Too many requests, please slow down' },
-  skip: (req) => isDev || req.path.startsWith('/api/mangadex'),
+  skip: (req) => isDev || ['/mangadex', '/proxy', '/csrf-token', '/visitors/heartbeat'].some(p => req.path.startsWith(p)),
 }))
+
+// Heavy read-only routes get their own per-IP limits
+app.use('/api/mangadex', rateLimit({
+  keyGenerator,
+  windowMs: 15 * 60 * 1000,
+  max: 1500,
+  message: { error: 'Too many requests, please slow down' },
+  skip: () => isDev,
+}))
+app.use('/api/proxy', rateLimit({
+  keyGenerator,
+  windowMs: 15 * 60 * 1000,
+  max: 4000,
+  message: { error: 'Too many requests, please slow down' },
+  skip: () => isDev,
+}))
+app.use('/api/visitors/heartbeat', rateLimit({
+  keyGenerator,
+  windowMs: 60 * 1000,
+  max: 20,
+  message: { error: 'Too many requests' },
+  skip: () => isDev,
+}))
+
+// Shows which IP the rate limiter sees for YOU (compare with your real public IP)
+app.get('/api/whoami-ip', (req, res) => {
+  res.json({
+    keyUsed: clientIp(req),
+    expressIp: req.ip,
+    hasCfConnectingIp: !!req.headers['cf-connecting-ip'],
+    hasTrueClientIp: !!req.headers['true-client-ip'],
+  })
+})
 app.use('/api/auth/register', rateLimit({
+  keyGenerator,
   windowMs: 60 * 60 * 1000,
   max: 2,
   message: { error: 'Too many accounts created from this IP, try again in 1 hour' },
   skip: () => isDev,
 }))
 app.use('/api/auth/login', rateLimit({
+  keyGenerator,
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: 'Too many login attempts, try again in 15 minutes' },
   skip: () => isDev,
 }))
 app.use('/api/auth/forgot-password', rateLimit({
+  keyGenerator,
   windowMs: 60 * 60 * 1000,
   max: 3,
   message: { error: 'Too many password reset requests, try again in 1 hour' },
   skip: () => isDev,
 }))
 app.use('/api/auth/resend-verification', rateLimit({
+  keyGenerator,
   windowMs: 60 * 60 * 1000,
   max: 3,
   message: { error: 'Too many verification emails requested, try again in 1 hour' },
