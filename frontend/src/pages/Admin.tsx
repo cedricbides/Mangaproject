@@ -3271,7 +3271,10 @@ function AdminRequestsTab() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="font-display text-lg text-white">Manga Requests</h2>
+        <div>
+          <h2 className="font-display text-lg text-white">Manga Requests</h2>
+          <p className="text-xs text-text-muted font-body mt-0.5">Sorted by community votes, highest first. Work from the top down.</p>
+        </div>
         <a href="/requests" target="_blank"
           className="flex items-center gap-1.5 text-xs text-primary font-body hover:underline">
           <ExternalLink size={11} /> View public page
@@ -3299,11 +3302,14 @@ function AdminRequestsTab() {
         <div className="text-center py-16 text-text-muted font-body">No {statusFilter} requests</div>
       ) : (
         <div className="space-y-3">
-          {requests.map(r => (
+          {requests.map((r, i) => (
             <div key={r._id} className="glass border border-white/5 rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {(statusFilter === 'pending' || statusFilter === 'approved') && (
+                      <span className={`font-display text-lg leading-none ${i < 3 ? 'text-primary' : 'text-text-muted'}`}>#{i + 1}</span>
+                    )}
                     <h3 className="font-display text-base text-white">{r.title}</h3>
                     <span className={`px-2 py-0.5 rounded-lg text-[10px] font-body border ${STATUS_META_ADMIN[r.status].color}`}>
                       {STATUS_META_ADMIN[r.status].label}

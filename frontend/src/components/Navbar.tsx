@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import BrandMark from '@/components/BrandMark'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import { Search, Menu, X, BookOpen, LogOut, User, Shield, Heart, Settings, Sun, Moon, BookMarked, WifiOff, Bell, TrendingUp } from 'lucide-react'
+import { Search, Menu, X, LogOut, User, Shield, Heart, Settings, Sun, Moon, BookMarked, WifiOff, Bell, TrendingUp } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
 import type { Theme } from '@/context/AuthContext'
@@ -171,10 +172,8 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_16px_rgba(232,57,77,0.5)]">
-            <BookOpen size={16} className="text-white" />
-          </div>
-          <span className="font-display text-2xl tracking-wider text-text group-hover:text-primary transition-colors">
+          <BrandMark size={38} />
+          <span className="brand-wordmark font-display text-2xl tracking-wider text-text group-hover:text-primary transition-colors">
             MANGAVERSE
           </span>
         </Link>

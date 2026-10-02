@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import BrandMark from '@/components/BrandMark'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
-import { BookOpen, Lock, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Lock, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import axios from 'axios'
 
 export default function ResetPassword() {
@@ -39,9 +40,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(232,57,77,0.5)]">
-              <BookOpen size={18} className="text-white" />
-            </div>
+            <BrandMark size={48} />
             <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
           </Link>
           <h1 className="font-display text-2xl text-white tracking-wide">Reset Password</h1>

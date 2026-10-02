@@ -51,6 +51,12 @@
   --dropdown-bg:  #ffffff;
 }
 
+/* Navbar wordmark: white in the light theme. The navbar sits over the dark hero,
+   so the default near-black text is unreadable there. The soft shadow keeps it
+   legible on plain light pages as well. */
+.theme-light .brand-wordmark { color: #fff; text-shadow: 0 1px 8px rgba(13,13,20,0.55); }
+.theme-light a:hover .brand-wordmark { color: #e8394d; text-shadow: none; }
+
 /* ── Base ────────────────────────────────────────────────────────────────── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }

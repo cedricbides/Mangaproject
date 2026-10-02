@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import BrandMark from '@/components/BrandMark'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { BookOpen, AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 export default function Register() {
@@ -44,9 +45,7 @@ export default function Register() {
     <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5">
 
       <Link to="/" className="inline-flex items-center gap-2 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(232,57,77,0.5)]">
-          <BookOpen size={18} className="text-white" />
-        </div>
+        <BrandMark size={48} />
         <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
       </Link>
 

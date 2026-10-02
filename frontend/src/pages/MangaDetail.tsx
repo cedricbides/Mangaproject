@@ -389,7 +389,7 @@ function AddChapterModal({
 
 // ── Language map (module-level so LangFlag can be a stable component) ──────────
 const LANG_MAP: Record<string, { cc: string; label: string; color: string }> = {
-    en:      { cc: 'gb',  label: 'English',                color: '#3b82f6' },
+    en:      { cc: 'us',  label: 'English',                color: '#3b82f6' },
     'ja':    { cc: 'jp',  label: 'Japanese',               color: '#ef4444' },
     'ja-ro': { cc: 'jp',  label: 'Japanese (Romaji)',      color: '#ef4444' },
     ko:      { cc: 'kr',  label: 'Korean',                 color: '#8b5cf6' },
@@ -455,16 +455,41 @@ const LANG_MAP: Record<string, { cc: string; label: string; color: string }> = {
     ur:      { cc: 'pk',  label: 'Urdu',                   color: '#22c55e' },
   }
 
-// ── LangFlag: language name only ─────────────────────────────────────────────
+// ── LangFlag: flag image + full language name ────────────────────────────────
 function LangFlag({ lang, size }: { lang: string; size?: number }) {
   const info = LANG_MAP[lang]
-  const fullLabel = info?.label ?? lang
+  const [failed, setFailed] = useState(false)
+  const label = info?.label ?? lang
+  const fontPx = size ?? 11
+  const flagW = 20
+  const flagH = 15
+
   return (
-    <span
-      className="font-body text-text-muted/70 flex-shrink-0"
-      style={{ fontSize: size ? `${size}px` : '11px' }}
-    >
-      {fullLabel}
+    <span className="inline-flex items-center gap-2 flex-shrink-0">
+      {info && !failed ? (
+        <img
+          src={`https://flagcdn.com/w40/${info.cc}.png`}
+          srcSet={`https://flagcdn.com/w80/${info.cc}.png 2x`}
+          width={flagW}
+          height={flagH}
+          alt={label}
+          title={label}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="rounded-[2px] object-cover ring-1 ring-white/10"
+          style={{ width: flagW, height: flagH }}
+        />
+      ) : (
+        <span
+          className="inline-flex items-center justify-center rounded-[2px] bg-white/10 text-[8px] font-mono text-text-muted uppercase"
+          style={{ width: flagW, height: flagH }}
+        >
+          {lang.slice(0, 2)}
+        </span>
+      )}
+      <span className="font-body text-text/80" style={{ fontSize: `${fontPx}px` }}>
+        {label}
+      </span>
     </span>
   )
 }
@@ -1164,7 +1189,6 @@ export default function MangaDetail() {
                 ['Status', manga.attributes.status],
                 ['Year', manga.attributes.year?.toString() || '-'],
                 ['Content Rating', manga.attributes.contentRating],
-                ['Languages', manga.attributes.availableTranslatedLanguages?.join(', ') || '-'],
                 ['Last Chapter', manga.attributes.lastChapter || '-'],
                 ['Last Volume', manga.attributes.lastVolume || '-'],
               ].map(([k, v]) => (
@@ -1173,6 +1197,14 @@ export default function MangaDetail() {
                   <span className="font-body text-xs text-text capitalize">{v}</span>
                 </div>
               ))}
+              <div className="sm:col-span-2 py-2 border-b border-white/5">
+                <span className="font-mono text-xs text-text-muted block mb-2">Languages</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {(manga.attributes.availableTranslatedLanguages ?? []).map((l: string) => (
+                    <LangFlag key={l} lang={l} size={12} />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}

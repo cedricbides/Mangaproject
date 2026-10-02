@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, ChevronUp, Clock, CheckCircle, XCircle, BookCheck, Search, X, ExternalLink, Loader2 } from 'lucide-react'
+import { Plus, ChevronUp, Clock, CheckCircle, XCircle, BookCheck, Search, X, ExternalLink, Loader2, Trophy } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
+
+const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
 const DEFAULT_CAT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><radialGradient id="bg" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1e1e30"/><stop offset="100%" stop-color="#0d0d14"/></radialGradient><clipPath id="circ"><circle cx="100" cy="100" r="100"/></clipPath></defs><circle cx="100" cy="100" r="100" fill="url(#bg)"/><g clip-path="url(#circ)"><ellipse cx="100" cy="110" rx="42" ry="40" fill="#f0a012"/><polygon points="68,80 58,55 85,74" fill="#f0a012"/><polygon points="132,80 142,55 115,74" fill="#f0a012"/><circle cx="100" cy="122" r="3" fill="#7a4a00"/></g><circle cx="100" cy="100" r="97" fill="none" stroke="#e8394d" stroke-width="1.5" opacity="0.4"/></svg>')}`
 
@@ -11,6 +13,149 @@ const STATUS_META: Record<string, { label: string; color: string; icon: any }> =
   approved: { label: 'Approved', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',      icon: CheckCircle },
   added:    { label: 'Added!',   color: 'text-green-400 bg-green-500/10 border-green-500/20',   icon: BookCheck },
   rejected: { label: 'Rejected', color: 'text-red-400 bg-red-500/10 border-red-500/20',         icon: XCircle },
+}
+
+// ── Voting leaderboard ───────────────────────────────────────────────────────
+interface LeaderboardItem {
+  _id: string
+  rank: number
+  title: string
+  alternativeTitles: string
+  status: string
+  votes: number
+  voted: boolean
+  userName: string
+  mangadexUrl: string
+  coverUrl: string
+}
+
+// Gold / silver / bronze for the podium, quiet rows for the rest
+const PODIUM: Record<number, { row: string; rank: string; trophy: string }> = {
+  1: { row: 'border-[#f5b73b]/60 bg-[#f5b73b]/[0.07]', rank: 'text-[#f5b73b]', trophy: 'text-[#f5b73b]' },
+  2: { row: 'border-[#b8bcc8]/50 bg-[#b8bcc8]/[0.06]', rank: 'text-[#b8bcc8]', trophy: 'text-[#b8bcc8]' },
+  3: { row: 'border-[#c8794a]/55 bg-[#c8794a]/[0.07]', rank: 'text-[#c8794a]', trophy: 'text-[#c8794a]' },
+}
+
+function RequestLeaderboard({
+  items, totalVotes, totalRequests, loading, canVote, votingId, expanded, onToggleExpanded, onVote,
+}: {
+  items: LeaderboardItem[]
+  totalVotes: number
+  totalRequests: number
+  loading: boolean
+  canVote: boolean
+  votingId: string | null
+  expanded: boolean
+  onToggleExpanded: () => void
+  onVote: (id: string) => void
+}) {
+  const visible = expanded ? items : items.slice(0, 5)
+
+  return (
+    <section className="glass border border-white/10 rounded-2xl p-4 sm:p-5 mb-8" aria-labelledby="leaderboard-title">
+      <div className="flex items-end justify-between gap-3 flex-wrap mb-4">
+        <div>
+          <h2 id="leaderboard-title" className="font-display text-2xl tracking-wide text-white leading-none">
+            Most Requested Manga
+          </h2>
+          <p className="font-body text-xs text-text-muted mt-1.5">
+            {totalVotes.toLocaleString()} {totalVotes === 1 ? 'vote' : 'votes'} across {totalRequests.toLocaleString()} open {totalRequests === 1 ? 'request' : 'requests'}. The top of this list gets added first.
+          </p>
+        </div>
+      </div>
+
+      {loading && items.length === 0 ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton h-[68px] rounded-xl" />)}
+        </div>
+      ) : items.length === 0 ? (
+        <p className="font-body text-sm text-text-muted py-6 text-center">
+          No votes yet. Request a manga and the community can start voting.
+        </p>
+      ) : (
+        <ol className="space-y-2">
+          {visible.map(item => {
+            const podium = PODIUM[item.rank]
+            const votable = canVote && item.status === 'pending'
+            return (
+              <li key={item._id}
+                className={`flex items-center gap-3 rounded-xl border pr-3 ${podium ? podium.row : 'border-white/5 bg-white/[0.02]'}`}>
+
+                {/* Rank */}
+                <div className="w-14 sm:w-16 flex-shrink-0 flex flex-col items-center justify-center self-stretch py-2">
+                  {podium && <Trophy size={12} className={podium.trophy} aria-hidden="true" />}
+                  <span className={`font-display leading-none ${podium ? `text-3xl ${podium.rank}` : 'text-2xl text-text-muted'}`}>
+                    {podium ? `#${item.rank}` : item.rank}
+                  </span>
+                </div>
+
+                {/* Cover */}
+                <div className="w-9 h-[52px] rounded-md overflow-hidden flex-shrink-0 bg-white/5 border border-white/10 flex items-center justify-center">
+                  {item.coverUrl ? (
+                    <img
+                      src={`${API_BASE}/api/proxy/image?url=${encodeURIComponent(item.coverUrl)}`}
+                      alt="" loading="lazy" className="w-full h-full object-cover"
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                    />
+                  ) : (
+                    <span className="font-display text-lg text-text-muted/60">{item.title.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+
+                {/* Title */}
+                <div className="flex-1 min-w-0 py-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {item.mangadexUrl ? (
+                      <a href={item.mangadexUrl} target="_blank" rel="noopener noreferrer"
+                        className="font-body text-sm sm:text-[15px] text-white truncate hover:text-primary transition-colors">
+                        {item.title}
+                      </a>
+                    ) : (
+                      <span className="font-body text-sm sm:text-[15px] text-white truncate">{item.title}</span>
+                    )}
+                    {item.status === 'approved' && (
+                      <span className="flex-shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-body border text-blue-400 bg-blue-500/10 border-blue-500/20">
+                        Approved
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-body text-[11px] text-text-muted truncate mt-0.5">
+                    {item.alternativeTitles || `Requested by ${item.userName}`}
+                  </p>
+                </div>
+
+                {/* Vote */}
+                <button
+                  onClick={() => onVote(item._id)}
+                  disabled={!votable || !!votingId}
+                  aria-pressed={item.voted}
+                  aria-label={`${item.voted ? 'Remove your vote from' : 'Vote for'} ${item.title}. ${item.votes} votes`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border flex-shrink-0 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                    item.voted
+                      ? 'bg-primary/20 border-primary/40 text-primary'
+                      : 'bg-white/5 border-white/10 text-text-muted enabled:hover:text-primary enabled:hover:border-primary/40'
+                  } disabled:cursor-default`}
+                >
+                  {votingId === item._id
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <ChevronUp size={15} strokeWidth={2.5} />}
+                  <span className="font-body text-sm text-white tabular-nums">{item.votes.toLocaleString()}</span>
+                  <span className="hidden sm:inline font-body text-xs text-text-muted">{item.votes === 1 ? 'vote' : 'votes'}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      )}
+
+      {items.length > 5 && (
+        <button onClick={onToggleExpanded}
+          className="mt-3 w-full py-2 rounded-xl text-xs font-body text-text-muted hover:text-text bg-white/[0.03] hover:bg-white/5 border border-white/5 transition-all">
+          {expanded ? 'Show top 5' : `Show top ${items.length}`}
+        </button>
+      )}
+    </section>
+  )
 }
 
 export default function MangaRequests() {
@@ -25,6 +170,12 @@ export default function MangaRequests() {
   const [submitting, setSubmitting] = useState(false)
   const [upvoting, setUpvoting]   = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState('')
+
+  // Voting leaderboard
+  const [leaderboard, setLeaderboard]     = useState<LeaderboardItem[]>([])
+  const [lbStats, setLbStats]             = useState({ totalVotes: 0, totalRequests: 0 })
+  const [lbLoading, setLbLoading]         = useState(true)
+  const [lbExpanded, setLbExpanded]       = useState(false)
 
   // Form state
   const [form, setForm] = useState({ title: '', alternativeTitles: '', mangadexUrl: '', notes: '' })
@@ -47,6 +198,16 @@ export default function MangaRequests() {
 
   useEffect(() => { loadRequests(0, statusFilter) }, [statusFilter])
 
+  async function loadLeaderboard() {
+    try {
+      const res = await axios.get('/api/manga-requests/leaderboard?limit=10', { withCredentials: true })
+      setLeaderboard(res.data.leaderboard)
+      setLbStats({ totalVotes: res.data.totalVotes, totalRequests: res.data.totalRequests })
+    } catch {} finally { setLbLoading(false) }
+  }
+
+  useEffect(() => { loadLeaderboard() }, [])
+
   async function handleSubmit() {
     if (!form.title.trim()) { setFormError('Title is required'); return }
     setFormError('')
@@ -58,6 +219,7 @@ export default function MangaRequests() {
       setForm({ title: '', alternativeTitles: '', mangadexUrl: '', notes: '' })
       setShowForm(false)
       setSuccessMsg('Request submitted! The admin will review it soon.')
+      loadLeaderboard()
       setTimeout(() => setSuccessMsg(''), 5000)
     } catch (err: any) {
       setFormError(err.response?.data?.error || 'Failed to submit')
@@ -75,6 +237,7 @@ export default function MangaRequests() {
             : r.upvotes.filter((u: string) => u !== user.id) }
         : r
       ))
+      await loadLeaderboard()
     } catch {} finally { setUpvoting(null) }
   }
 
@@ -84,6 +247,7 @@ export default function MangaRequests() {
       await axios.delete(`/api/manga-requests/${id}`, { withCredentials: true })
       setRequests(prev => prev.filter(r => r._id !== id))
       setTotal(t => t - 1)
+      loadLeaderboard()
     } catch {}
   }
 
@@ -163,6 +327,19 @@ export default function MangaRequests() {
           </div>
         </div>
       )}
+
+      {/* Voting leaderboard: what the community wants added next */}
+      <RequestLeaderboard
+        items={leaderboard}
+        totalVotes={lbStats.totalVotes}
+        totalRequests={lbStats.totalRequests}
+        loading={lbLoading}
+        canVote={!!user}
+        votingId={upvoting}
+        expanded={lbExpanded}
+        onToggleExpanded={() => setLbExpanded(v => !v)}
+        onVote={toggleUpvote}
+      />
 
       {/* Filters + Search */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
