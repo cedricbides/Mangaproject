@@ -23,7 +23,6 @@ import AdminBulkManager from '@/components/admin/AdminBulkManager'
 import AdminChapterScheduler from '@/components/admin/AdminChapterScheduler'
 import AdminActivityLog from '@/components/admin/AdminActivityLog'
 import AdminVisitorTracker from '@/components/admin/AdminVisitorTracker'
-import AdminTraffic from '@/components/admin/AdminTraffic'
 import AdminExportAnalytics from '@/components/admin/AdminExportAnalytics'
 import AdminAnnouncementScheduler from '@/components/admin/AdminAnnouncementScheduler'
 import AdminSEOEditor from '@/components/admin/AdminSEOEditor'
@@ -3386,12 +3385,11 @@ function AdminRequestsTab() {
 function AdminToolsTab() {
   const { isSuperAdmin, hasPerm } = useAuth()
   const [toolTab, setToolTab] = useState<
-    'bulk' | 'scheduler' | 'visitors' | 'traffic' | 'activity' | 'seo' | 'export' | 'backup'
+    'bulk' | 'scheduler' | 'visitors' | 'activity' | 'seo' | 'export' | 'backup'
   >('visitors')
 
   const tabs: { key: typeof toolTab; label: string; perm: string }[] = [
     { key: 'visitors',  label: '🟢 Live Visitors',     perm: 'tools.visitors'  },
-    { key: 'traffic',   label: '🛡 Traffic Monitor',   perm: 'tools.traffic'   },
     { key: 'bulk',      label: '📦 Bulk Manager',      perm: 'tools.bulk'      },
     { key: 'scheduler', label: '⏰ Scheduler',          perm: 'tools.scheduler' },
     { key: 'activity',  label: '📋 Activity Log',      perm: 'tools.activity'  },
@@ -3423,7 +3421,6 @@ function AdminToolsTab() {
       {/* Panel */}
       <div>
         {toolTab === 'visitors'  && <AdminVisitorTracker />}
-        {toolTab === 'traffic'   && <AdminTraffic />}
         {toolTab === 'bulk'      && <AdminBulkManager />}
         {toolTab === 'scheduler' && <AdminChapterScheduler />}
         {toolTab === 'activity'  && <AdminActivityLog />}

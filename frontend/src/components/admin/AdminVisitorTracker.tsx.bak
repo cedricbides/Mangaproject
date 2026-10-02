@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { Wifi, UserCheck, RefreshCw, Monitor } from 'lucide-react'
+import { Wifi, Users, UserCheck, User, RefreshCw, Monitor } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 interface Visitor {
@@ -92,10 +92,11 @@ export default function AdminVisitorTracker() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Online Now', value: active?.total ?? '—', icon: Monitor, color: 'text-green-400' },
           { label: 'Logged In', value: active?.authenticated ?? '—', icon: UserCheck, color: 'text-blue-400' },
+          { label: 'Guests', value: active?.guests ?? '—', icon: User, color: 'text-text-muted' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="glass rounded-xl p-3 text-center">
             <Icon size={16} className={`${color} mx-auto mb-1`} />
@@ -153,7 +154,7 @@ export default function AdminVisitorTracker() {
                 <div key={v._id} className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${v.userId ? 'bg-blue-400' : 'bg-green-400'}`} />
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs text-text">{v.username || 'User'}</span>
+                    <span className="text-xs text-text">{v.username || 'Guest'}</span>
                     <span className="text-xs text-text-muted ml-2 truncate">{v.page}</span>
                   </div>
                   <span className="text-[10px] text-text-muted flex-shrink-0">{timeAgo(v.lastSeen)}</span>

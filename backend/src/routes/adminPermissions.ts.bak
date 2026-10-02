@@ -13,7 +13,6 @@ export const ALL_PERMISSIONS = [
   'site',
   'moderation',
   'tools.visitors',
-  'tools.traffic',
   'tools.bulk',
   'tools.scheduler',
   'tools.activity',

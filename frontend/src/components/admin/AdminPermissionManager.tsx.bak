@@ -41,7 +41,6 @@ const PERMISSION_GROUPS = [
     label: 'Admin Tools',
     perms: [
       { key: 'tools.visitors',  label: 'Live Visitors',     desc: 'See who is online now' },
-      { key: 'tools.traffic',   label: 'Traffic Monitor',   desc: 'Server request log, bots, ban abusive accounts' },
       { key: 'tools.bulk',      label: 'Bulk Manager',      desc: 'Bulk edit/delete/import manga' },
       { key: 'tools.scheduler', label: 'Chapter Scheduler', desc: 'Schedule chapter publish dates' },
       { key: 'tools.activity',  label: 'Activity Log',      desc: 'View admin action history' },

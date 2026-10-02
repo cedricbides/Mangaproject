@@ -1,5 +1,5 @@
 ﻿import { lazy, Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -24,6 +24,7 @@ const ManualReader    = lazy(() => import('@/pages/ManualReader'))
 const Feed            = lazy(() => import('@/pages/Feed'))
 const PublicProfile   = lazy(() => import('@/pages/PublicProfile'))
 const MangaRequests   = lazy(() => import('@/pages/MangaRequests'))
+const MyDownloads     = lazy(() => import('@/pages/MyDownloads'))
 const Downloads       = lazy(() => import('@/pages/Downloads'))
 const VerifyEmail     = lazy(() => import('@/pages/VerifyEmail'))
 const ForgotPassword  = lazy(() => import('@/pages/ForgotPassword'))
@@ -152,7 +153,7 @@ export default function App() {
               <Route path="/favorites"          element={<ProtectedRoute><Layout><Favorites /></Layout></ProtectedRoute>} />
               <Route path="/profile"            element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
               <Route path="/downloads"          element={<ProtectedRoute><Layout><Downloads /></Layout></ProtectedRoute>} />
-              <Route path="/my-downloads"       element={<Navigate to="/downloads" replace />} />
+              <Route path="/my-downloads"       element={<ProtectedRoute><Layout><MyDownloads /></Layout></ProtectedRoute>} />
               <Route path="/my-list"            element={<ProtectedRoute><Layout><MyList /></Layout></ProtectedRoute>} />
               <Route path="/stats"              element={<ProtectedRoute><Layout><Stats /></Layout></ProtectedRoute>} />
               <Route path="/login"              element={<Login />} />

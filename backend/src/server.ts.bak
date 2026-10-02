@@ -17,12 +17,11 @@ import User from './models/User'
 import { configurePassport } from './config/passport'
 import { startScheduler } from './utils/scheduler'
 import { requireAuth } from './middleware/auth'
-import { requestLogger } from './middleware/requestLogger'
-import adminTrafficRoutes from './routes/adminTraffic'
 
 import authRoutes from './routes/auth'
 import searchRoutes from './routes/search'
 import favRoutes from './routes/favorites'
+import adminRoutes from './routes/admin'
 import adminActivityRoutes from './routes/adminActivity'
 import adminVisitorRoutes from './routes/adminVisitors'
 import adminExportRoutes from './routes/adminExport'
@@ -57,9 +56,6 @@ function clientIp(req: express.Request): string {
   return ((h ? h.split(',')[0].trim() : req.ip) || 'unknown')
 }
 const keyGenerator = (req: express.Request) => ipKeyGenerator(clientIp(req))
-
-// Log every API request (buffered) so the admin Traffic tab can see bots
-app.use(requestLogger(clientIp))
 
 app.use(compression())
 
@@ -152,6 +148,15 @@ app.use('/api/visitors/heartbeat', rateLimit({
   skip: () => isDev,
 }))
 
+// Shows which IP the rate limiter sees for YOU (compare with your real public IP)
+app.get('/api/whoami-ip', (req, res) => {
+  res.json({
+    keyUsed: clientIp(req),
+    expressIp: req.ip,
+    hasCfConnectingIp: !!req.headers['cf-connecting-ip'],
+    hasTrueClientIp: !!req.headers['true-client-ip'],
+  })
+})
 app.use('/api/auth/register', rateLimit({
   keyGenerator,
   windowMs: 60 * 60 * 1000,
@@ -265,8 +270,8 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 app.use('/api/auth', authRoutes)
 app.use('/api/search', requireAuth, searchRoutes)
 app.use('/api/favorites', requireAuth, favRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/admin', adminActivityRoutes)
-app.use('/api/admin/traffic', adminTrafficRoutes)
 app.use('/api/admin', adminPermissionsRoutes)
 app.use('/api/admin/export', adminExportRoutes)
 app.use('/api/admin/backup', adminBackupRoutes)

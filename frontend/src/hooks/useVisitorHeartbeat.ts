@@ -17,14 +17,14 @@ const INTERVAL_MS = 30_000 // ping every 30s
 
 export function useVisitorHeartbeat() {
   const location = useLocation()
-  const { loading: authLoading } = useAuth()
+  const { loading: authLoading, user } = useAuth()
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sessionId = useRef(getSessionId())
 
   const ping = (path: string) => {
     // Don't ping until auth has resolved — otherwise logged-in users
     // appear as guests on the first heartbeat
-    if (authLoading) return
+    if (authLoading || !user) return
     axios.post(
       '/api/visitors/heartbeat',
       {

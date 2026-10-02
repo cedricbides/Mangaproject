@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express'
 import VisitorSession from '../models/VisitorSession'
-import { requireAdmin } from '../middleware/auth'
+import { requireAdmin, requireAuth } from '../middleware/auth'
 
 const router = Router()
 
 // Called by the frontend heartbeat every 30s to track active visitors.
-// No auth required; guest sessions are tracked too.
-router.post('/heartbeat', async (req: Request, res: Response) => {
+// Login required: guests are no longer tracked.
+router.post('/heartbeat', requireAuth, async (req: Request, res: Response) => {
   try {
     const { sessionId, page, pageTitle, referrer } = req.body
     if (!sessionId || !page) return res.status(400).json({ error: 'sessionId and page required' })
