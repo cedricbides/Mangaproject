@@ -2,7 +2,8 @@ import { useState } from 'react'
 import BrandMark from '@/components/BrandMark'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { AlertCircle, CheckCircle } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import axios from 'axios'
+import BotShield, { captchaEnabled } from '@/components/BotShield'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -12,8 +13,12 @@ export default function Register() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [honeypotValue, setHoneypotValue] = useState('')
+  const [captchaReset, setCaptchaReset] = useState(0)
 
-  const { register } = useAuth()
+  const resetCaptcha = () => { setTurnstileToken(null); setCaptchaReset(k => k + 1) }
+
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -26,11 +31,16 @@ export default function Register() {
     setError('')
     setLoading(true)
     try {
-      await register(name.trim(), email, password)
+      await axios.post('/api/auth/register', {
+        name: name.trim(), email, password,
+        website: honeypotValue,
+        turnstileToken,
+      }, { withCredentials: true })
       setSuccess(true)
       setTimeout(() => navigate('/login', { state: location.state }), 2000)
     } catch (err: any) {
       const data = err?.response?.data
+      resetCaptcha()
       if (err?.response?.status === 403) {
         setError('Registration is currently closed. Please check back later.')
       } else {
@@ -129,6 +139,8 @@ export default function Register() {
                   />
                 </div>
 
+                <BotShield onToken={setTurnstileToken} onHoneypot={setHoneypotValue} resetKey={captchaReset} />
+
                 {error && (
                   <div className="flex items-center gap-2 text-red-400 text-sm font-body bg-red-400/10 rounded-lg px-4 py-3">
                     <AlertCircle size={14} className="shrink-0" />
@@ -142,7 +154,7 @@ export default function Register() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={loading || (captchaEnabled && !turnstileToken)}
                   className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white font-body font-semibold text-sm rounded-lg transition-all hover:shadow-[0_0_20px_rgba(232,57,77,0.4)] disabled:opacity-50"
                 >
                   {loading ? 'Creating account…' : 'Register'}

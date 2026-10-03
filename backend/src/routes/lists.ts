@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { requireAuth } from '../middleware/auth'
-import MangaList from '../models/Mangalist'
+import MangaList from '../models/MangaList';
 
 const router = Router()
 

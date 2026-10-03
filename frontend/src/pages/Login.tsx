@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { AlertCircle, Mail, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
+import BotShield, { captchaEnabled } from '@/components/BotShield'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -15,6 +16,11 @@ export default function Login() {
   const [pendingEmail, setPendingEmail] = useState('')
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSent, setResendSent] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [honeypotValue, setHoneypotValue] = useState('')
+  const [captchaReset, setCaptchaReset] = useState(0)
+
+  const resetCaptcha = () => { setTurnstileToken(null); setCaptchaReset(k => k + 1) }
 
   const { loginWithEmail } = useAuth()
   const navigate = useNavigate()
@@ -27,10 +33,14 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
+      // Token is sent as a header so AuthContext doesn't need to change
+      axios.defaults.headers.common['x-turnstile-token'] = turnstileToken ?? ''
+      axios.defaults.headers.common['x-honeypot'] = honeypotValue
       await loginWithEmail(email, password, rememberMe)
       navigate(returnTo, { replace: true })
     } catch (err: any) {
       const data = err?.response?.data
+      resetCaptcha()
       if (data?.pendingVerification) {
         setPendingEmail(data.email || email)
         setPendingVerification(true)
@@ -39,6 +49,8 @@ export default function Login() {
       }
       setError(data?.error || 'Invalid email or password')
     } finally {
+      delete axios.defaults.headers.common['x-turnstile-token']
+      delete axios.defaults.headers.common['x-honeypot']
       setLoading(false)
     }
   }
@@ -158,6 +170,8 @@ export default function Login() {
               </Link>
             </div>
 
+            <BotShield onToken={setTurnstileToken} onHoneypot={setHoneypotValue} resetKey={captchaReset} />
+
             {error && (
               <div className="flex items-center gap-2 text-red-400 text-sm font-body bg-red-400/10 rounded-lg px-4 py-3">
                 <AlertCircle size={14} className="shrink-0" />
@@ -167,7 +181,7 @@ export default function Login() {
 
             <button
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={loading || (captchaEnabled && !turnstileToken)}
               className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white font-body font-semibold text-sm rounded-lg transition-all hover:shadow-[0_0_20px_rgba(232,57,77,0.4)] disabled:opacity-50"
             >
               {loading ? 'Signing in…' : 'Sign In'}

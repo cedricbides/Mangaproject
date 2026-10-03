@@ -6,6 +6,7 @@ import type { IUser } from '../models/User'
 import SiteSettings from '../models/SiteSettings'
 import { notifyAdmin } from '../utils/notifications'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email'
+import { honeypot, verifyTurnstile } from '../middleware/botProtection'
 
 const router = Router()
 
@@ -25,7 +26,7 @@ function safeUser(user: any) {
 }
 
 // REGISTER
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', honeypot, verifyTurnstile, async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body
     if (!name || !email || !password) return res.status(400).json({ error: 'All fields required' })
@@ -133,7 +134,7 @@ router.post('/resend-verification', async (req: Request, res: Response) => {
 })
 
 // LOGIN
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', honeypot, verifyTurnstile, async (req: Request, res: Response) => {
   try {
     const { email, password, rememberMe } = req.body
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
