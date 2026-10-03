@@ -43,6 +43,14 @@ export default function Navbar() {
   const navigate = useNavigate()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Search needs a login: guests who try it are sent to Sign In
+  useEffect(() => {
+    if (searchModalOpen && !user) {
+      setSearchModalOpen(false)
+      navigate('/login', { state: { from: location.pathname } })
+    }
+  }, [searchModalOpen, user])
+
   const [announcement, setAnnouncement] = useState<{ enabled: boolean; text: string } | null>(null)
   const [announcementDismissed, setAnnouncementDismissed] = useState(false)
 
@@ -203,6 +211,20 @@ export default function Navbar() {
               <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px]">⌃K</kbd>
             </span>
           </button>
+
+          {/* Guest buttons */}
+          {!user && (
+            <>
+              <Link to="/login"
+                className="hidden sm:flex items-center px-3 py-2 text-sm font-body text-text-muted hover:text-text transition-colors">
+                Sign In
+              </Link>
+              <Link to="/register"
+                className="hidden sm:flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-body font-medium transition-all hover:shadow-[0_0_20px_rgba(232,57,77,0.4)]">
+                Register
+              </Link>
+            </>
+          )}
 
           {/* Admin badge */}
           {isAdmin && (
@@ -381,7 +403,7 @@ export default function Navbar() {
                         className="w-full flex items-center justify-center py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-body font-medium transition-all hover:shadow-[0_0_20px_rgba(232,57,77,0.4)]">
                         Sign In
                       </Link>
-                      <Link to="/login" onClick={() => setDropdownOpen(false)}
+                      <Link to="/register" onClick={() => setDropdownOpen(false)}
                         className="w-full flex items-center justify-center py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-text-muted hover:text-text rounded-xl text-sm font-body transition-all">
                         Register
                       </Link>
@@ -433,10 +455,16 @@ export default function Navbar() {
               </button>
             </>
           ) : (
+<>
             <Link to="/login" onClick={() => setMenuOpen(false)}
               className="w-full text-center py-2.5 bg-primary text-white rounded-xl text-sm font-body">
               Sign In
             </Link>
+            <Link to="/register" onClick={() => setMenuOpen(false)}
+              className="w-full text-center py-2.5 bg-white/5 border border-white/10 text-text-muted rounded-xl text-sm font-body">
+              Register
+            </Link>
+</>
           )}
         </div>
       )}

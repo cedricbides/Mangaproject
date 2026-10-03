@@ -9,6 +9,7 @@ import { useVisitorHeartbeat } from '@/hooks/useVisitorHeartbeat'
 import axios from 'axios'
 
 const Home            = lazy(() => import('@/pages/Home'))
+const GuestHome       = lazy(() => import('@/pages/GuestHome'))
 const Browse          = lazy(() => import('@/pages/Browse'))
 const Catalog         = lazy(() => import('@/pages/Catalog'))
 const MangaDetail     = lazy(() => import('@/pages/MangaDetail'))
@@ -135,6 +136,13 @@ function MaintenanceGate({ children }: { children: React.ReactNode }) {
   )
 }
 
+// "/" shows the real Home for logged-in users and the public front page for guests
+function HomeRoute() {
+  const { user, loading } = useAuth()
+  if (loading) return <PageLoader />
+  return <Layout>{user ? <Home /> : <GuestHome />}</Layout>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -143,7 +151,7 @@ export default function App() {
         <MaintenanceGate>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/"                   element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
+              <Route path="/"                   element={<HomeRoute />} />
               <Route path="/browse"             element={<ProtectedRoute><Layout><Browse /></Layout></ProtectedRoute>} />
               <Route path="/catalog"            element={<ProtectedRoute><Layout><Catalog /></Layout></ProtectedRoute>} />
               <Route path="/trending"           element={<ProtectedRoute><Layout><Browse /></Layout></ProtectedRoute>} />

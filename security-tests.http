@@ -1,0 +1,106 @@
+@host = http://localhost:5000
+
+# 1. SSRF PROXY
+
+### Block localhost - expect 403
+GET {{host}}/api/proxy/image?url=http://localhost:3000
+
+### Block AWS metadata - expect 403
+GET {{host}}/api/proxy/image?url=http://169.254.169.254
+
+### Block internal network - expect 403
+GET {{host}}/api/proxy/image?url=http://192.168.1.1
+
+### Block random site - expect 403
+GET {{host}}/api/proxy/image?url=https://google.com/image.jpg
+
+### Allow MangaDex CDN - expect 200
+GET {{host}}/api/proxy/image?url=https://uploads.mangadex.org/covers/some-manga-id/cover.jpg
+
+
+# 2. PATH TRAVERSAL
+
+### Escape uploads folder - expect 400
+DELETE {{host}}/api/upload/pages/../../server.ts
+
+### Delete .env - expect 400
+DELETE {{host}}/api/upload/pages/../.env
+
+### Normal filename - expect 200
+DELETE {{host}}/api/upload/pages/test-image.jpg
+
+
+# 3. BANNED USER
+# Step 1: Login, Step 2: set banned:true in MongoDB, Step 3: hit /me
+
+### Login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "Test1234"
+}
+
+### After banning in DB - expect 401
+GET {{host}}/api/auth/me
+
+
+# 4. DUPLICATE EMAIL
+
+### Register normally - expect 201
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@test.com",
+  "password": "Test1234"
+}
+
+### Same email with uppercase and spaces - expect 400
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "  TEST@TEST.COM  ",
+  "password": "Test1234"
+}
+
+
+# 5. CONTENT SECURITY POLICY
+
+### Check response headers for Content-Security-Policy - expect CSP header
+GET {{host}}/api/health
+
+
+# 6. BANNED USER LOGIN - should now block at login itself
+
+### Try logging in with banned account - expect 403
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "Test1234"
+}
+
+
+# 7. ERROR LEAKING - should return generic error in production
+
+### Trigger a bad request and check error message
+GET {{host}}/api/auth/me
+
+
+# 8. SANITIZED NAME IN NOTIFY - register with weird name
+### expect cleanName used, not raw name
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "  <script>alert(1)</script>  ",
+  "email": "newtest2@test.com",
+  "password": "Test1234"
+}
+

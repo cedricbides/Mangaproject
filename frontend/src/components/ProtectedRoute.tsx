@@ -16,9 +16,9 @@ export default function ProtectedRoute({ children, requireAdmin, requireStaff }:
   // Wait for auth to load before deciding
   if (loading) return null
 
-  // Guests must sign up (or log in) first; remember the page they wanted
+  // Guests must sign in first (Register is one click away); remember the page they wanted
   if (!user) {
-    return <Navigate to="/register" replace state={{ from: location.pathname + location.search }} />
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   }
   if (requireAdmin && !isAdmin) return <Navigate to="/" replace />
   if (requireStaff && !isStaff) return <Navigate to="/" replace />
