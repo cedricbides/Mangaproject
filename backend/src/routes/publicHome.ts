@@ -101,6 +101,13 @@ async function latestUpdates() {
     })
 }
 
+// MangaDex tag ids for the genre rows on the landing page
+const GENRE_TAGS = {
+  action: '391b0423-d847-456f-aff0-8b0cfc03066b',
+  romance: '423e2eae-a7a2-4a8b-ac03-a8351462d71d',
+  sliceOfLife: 'e5301a23-ebd9-4bf3-8ffd-2b0a4d3a1d56',
+}
+
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === 'fulfilled' ? r.value : fallback
 }
@@ -109,12 +116,16 @@ async function buildHome() {
   const year = new Date().getFullYear()
   const base = 'contentRating[]=safe&hasAvailableChapters=true'
 
-  const [trendingR, recommendedR, seasonalR, recentR, latestR] = await Promise.allSettled([
+  const tag = (id: string) => `includedTags[]=${id}&includedTagsMode=AND`
+  const [trendingR, recommendedR, seasonalR, recentR, latestR, actionR, romanceR, solR] = await Promise.allSettled([
     listManga(`limit=18&order[followedCount]=desc&${base}`),
     listManga(`limit=18&order[rating]=desc&${base}`),
     listManga(`limit=18&year=${year}&order[followedCount]=desc&${base}`),
     listManga(`limit=18&order[createdAt]=desc&${base}`),
     latestUpdates(),
+    listManga(`limit=12&order[followedCount]=desc&${tag(GENRE_TAGS.action)}&${base}`),
+    listManga(`limit=12&order[followedCount]=desc&${tag(GENRE_TAGS.romance)}&${base}`),
+    listManga(`limit=12&order[followedCount]=desc&${tag(GENRE_TAGS.sliceOfLife)}&${base}`),
   ])
 
   const trendingRaw = settled(trendingR, [] as any[])
@@ -122,6 +133,11 @@ async function buildHome() {
   const seasonal = settled(seasonalR, [] as any[]).map(card)
   const recentlyAdded = settled(recentR, [] as any[]).map(card)
   const latest = settled(latestR, [] as any[])
+  const genres = {
+    action: settled(actionR, [] as any[]).map(card),
+    romance: settled(romanceR, [] as any[]).map(card),
+    sliceOfLife: settled(solR, [] as any[]).map(card),
+  }
 
   const hero = trendingRaw.slice(0, 6).map((m: any) => {
     const desc = m.attributes?.description || {}
@@ -144,7 +160,7 @@ async function buildHome() {
   if (!trending.length && !recommended.length && !latest.length) {
     throw new Error('No data from upstream')
   }
-  return { hero, trending, recommended, seasonal, recentlyAdded, latest }
+  return { hero, trending, recommended, seasonal, recentlyAdded, latest, genres }
 }
 
 // ── GET /api/public/home ─────────────────────────────────────────────────────

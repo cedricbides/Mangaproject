@@ -5,6 +5,7 @@ import { AlertCircle, Mail, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '@/context/AuthContext'
 import BotShield, { captchaEnabled } from '@/components/BotShield'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -73,7 +74,7 @@ export default function Login() {
       <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5">
         <Link to="/" className="inline-flex items-center gap-2 mb-8">
           <BrandMark size={48} />
-          <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
+          <span className="font-display text-3xl tracking-wider text-text">MANGAVERSE</span>
         </Link>
         <div className="w-full max-w-sm glass rounded-2xl overflow-hidden">
           <div className="h-1 bg-primary w-full" />
@@ -81,9 +82,9 @@ export default function Login() {
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
               <Mail size={28} className="text-primary" />
             </div>
-            <h2 className="font-display text-xl text-white mb-2">Check your inbox</h2>
+            <h2 className="font-display text-xl text-text mb-2">Check your inbox</h2>
             <p className="text-text-muted text-sm font-body mb-6 leading-relaxed">
-              We sent a verification link to <span className="text-white font-medium">{pendingEmail}</span>.
+              We sent a verification link to <span className="text-text font-medium">{pendingEmail}</span>.
               Click it to activate your account. The link expires in 24 hours.
             </p>
             {resendSent ? (
@@ -99,7 +100,7 @@ export default function Login() {
                 {resendLoading ? 'Sending…' : "Didn't receive it? Resend"}
               </button>
             )}
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="mt-6 pt-6 border-t border-[var(--border)]">
               <button
                 onClick={() => { setPendingVerification(false); setError('') }}
                 className="text-sm text-text-muted hover:text-text font-body"
@@ -119,13 +120,13 @@ export default function Login() {
 
       <Link to="/" className="inline-flex items-center gap-2 mb-8">
         <BrandMark size={48} />
-        <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
+        <span className="font-display text-3xl tracking-wider text-text">MANGAVERSE</span>
       </Link>
 
       <div className="w-full max-w-sm glass rounded-2xl overflow-hidden">
         <div className="h-1 bg-primary w-full" />
         <div className="p-8">
-          <h1 className="font-display text-xl text-white text-center mb-6 tracking-wide">
+          <h1 className="font-display text-xl text-text text-center mb-6 tracking-wide">
             Sign in to your account
           </h1>
 
@@ -138,20 +139,18 @@ export default function Login() {
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                 autoFocus
-                className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
+                className="w-full bg-[var(--card)] border border-[var(--border)] focus:border-primary rounded-lg px-4 py-2.5 text-sm text-text placeholder-text-muted outline-none transition-colors font-body"
                 placeholder="you@example.com"
               />
             </div>
 
             <div className="flex flex-col gap-1">
               <label className="text-sm text-text-muted font-body">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={setPassword}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
-                placeholder="••••••••"
+                autoComplete="current-password"
               />
             </div>
 
@@ -189,7 +188,7 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="px-8 py-4 bg-white/5 border-t border-white/10 text-center">
+        <div className="px-8 py-4 bg-[var(--card)] border-t border-[var(--border)] text-center">
           <span className="text-sm font-body text-text-muted">New user? </span>
           <Link to="/register" state={location.state} className="text-sm font-body text-primary hover:underline">Register</Link>
         </div>

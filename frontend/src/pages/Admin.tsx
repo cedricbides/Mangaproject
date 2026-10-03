@@ -86,11 +86,30 @@ interface AnalyticsData {
   }
 }
 
+
+/** Ticks every second on its own, so the rest of the admin page doesn't re-render. */
+function UpdatedAgo({ since }: { since: Date | null }) {
+  const [, force] = useState(0)
+  useEffect(() => {
+    if (!since) return
+    const t = setInterval(() => force(n => n + 1), 1000)
+    return () => clearInterval(t)
+  }, [since])
+  if (!since) return <>Loading...</>
+  const secs = Math.floor((Date.now() - since.getTime()) / 1000)
+  return secs < 5 ? <span className="text-emerald-400">Just refreshed</span> : <>Updated {secs}s ago</>
+}
+
 export default function Admin() {
 
   const { user, isAdmin, isSuperAdmin, hasPerm, loading } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    document.body.classList.add('admin-page')
+    return () => document.body.classList.remove('admin-page')
+  }, [])
   const [activeTab, setActiveTab] = useState<'manga' | 'users' | 'analytics' | 'site' | 'moderation' | 'tools' | 'requests'>(() => {
     const t = searchParams.get('tab')
     return (['manga','users','analytics','site','moderation','tools','requests'].includes(t || '') ? t : 'manga') as any
@@ -117,7 +136,6 @@ export default function Admin() {
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null)
   const [newlyDetected, setNewlyDetected] = useState<Set<string>>(new Set())
   const [refreshing, setRefreshing] = useState(false)
-  const [secondsSince, setSecondsSince] = useState(0)
   const prevIdsRef = useRef<Set<string>>(new Set())
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -225,15 +243,6 @@ export default function Admin() {
     loadManga()
   }, [isAdmin])
 
-  // Tick counter
-  useEffect(() => {
-    const tick = setInterval(() => {
-      if (lastRefreshed) {
-        setSecondsSince(Math.floor((Date.now() - lastRefreshed.getTime()) / 1000))
-      }
-    }, 1000)
-    return () => clearInterval(tick)
-  }, [lastRefreshed])
 
   // Silent background poll
   // Load imported overview when Manually Added tab is shown
@@ -274,7 +283,6 @@ export default function Admin() {
       setMangaList(freshList)
       setStats(statsRes.data)
       setLastRefreshed(new Date())
-      setSecondsSince(0)
     } catch (_) {}
     setRefreshing(false)
   }, [refreshing])
@@ -296,7 +304,6 @@ export default function Admin() {
     prevIdsRef.current = new Set(list.map(m => m._id))
     setMangaList(list)
     setLastRefreshed(new Date())
-    setSecondsSince(0)
 
     setLoadingData(false)
   }
@@ -466,9 +473,76 @@ export default function Admin() {
   if (loading) return <div className="pt-32 text-center text-text-muted font-body">Loading...</div>
   if (!isAdmin) return null
 
+  // ── Sidebar / breadcrumb helpers (same permission rules as the tab bar) ──
+  const SIDEBAR_ITEMS = [
+    ['manga', 'Manga Management', BookOpen],
+    ['users', 'Users', Users],
+    ['analytics', 'Analytics', BarChart2],
+    ['site', 'Site Settings', Settings],
+    ['moderation', 'Moderation', AlertTriangle],
+    ['requests', 'Requests', BookMarked],
+    ['tools', 'Admin Tools', Shield],
+  ] as const
+  const SIDEBAR_PERMS: Record<string, string> = {
+    manga: 'manga', users: 'users', analytics: 'analytics',
+    site: 'site', moderation: 'moderation', tools: 'tools.visitors', requests: 'moderation',
+  }
+  const isTabLocked = (tab: string) => !isSuperAdmin && tab !== 'manga' && !hasPerm(SIDEBAR_PERMS[tab] || tab)
+  const modTotal = modCounts.pendingReports + modCounts.flaggedComments + modCounts.flaggedReviews
+  const activeLabel = SIDEBAR_ITEMS.find(([t]) => t === activeTab)?.[1] ?? 'Admin'
+  const sourceLabel = activeTab === 'manga'
+    ? (mangaSource === 'api' ? 'MangaDex API' : mangaSource === 'local' ? 'Manually Added' : 'All on Site')
+    : null
+
   return (
 
-    <div className="max-w-6xl mx-auto px-5 pt-20 pb-16">
+    <div className="admin-lite max-w-[1400px] mx-auto px-5 pt-20 pb-16 lg:flex lg:gap-6 lg:items-start">
+
+      {/* ── Left sidebar (desktop). Phones keep the tab bar below. ───────── */}
+      <aside className="hidden lg:flex flex-col gap-1 w-[92px] flex-shrink-0 sticky top-24 glass rounded-2xl p-2 border border-[var(--border)]">
+        {SIDEBAR_ITEMS.map(([tab, label, Icon]: any) => {
+          const locked = isTabLocked(tab)
+          const isActive = activeTab === tab
+          return (
+            <button key={tab}
+              onClick={() => !locked && handleTabChange(tab)}
+              title={locked ? "You don't have permission for this section" : label}
+              className={`relative flex flex-col items-center gap-1.5 px-1.5 py-3 rounded-xl text-center transition-all ${
+                isActive ? 'bg-primary/15 text-primary ring-1 ring-primary/40' :
+                locked ? 'text-text-muted/30 cursor-not-allowed' :
+                'text-text-muted hover:text-text hover:bg-[var(--card)]'
+              }`}>
+              {isActive && <span className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-primary" />}
+              <Icon size={18} />
+              <span className="text-[10px] font-body leading-tight">{label}</span>
+              {locked && <span className="absolute top-1 right-1 text-[8px] opacity-60">🔒</span>}
+              {tab === 'moderation' && !locked && modTotal > 0 && (
+                <span className="absolute top-1 right-1.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-mono rounded-full flex items-center justify-center">
+                  {modTotal}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </aside>
+
+      <div className="flex-1 min-w-0">
+
+      {/* ── Breadcrumb ───────────────────────────────────────────────────── */}
+      <nav className="flex items-center flex-wrap gap-1.5 text-xs font-body text-text-muted mb-4">
+        <Link to="/" className="hover:text-text transition-colors">Home</Link>
+        <ChevronRight size={11} className="opacity-50" />
+        <button onClick={() => handleTabChange('manga')} className="hover:text-text transition-colors">Admin</button>
+        <ChevronRight size={11} className="opacity-50" />
+        <span className={sourceLabel ? 'hover:text-text' : 'text-text font-medium'}>{activeLabel}</span>
+        {sourceLabel && (
+          <>
+            <ChevronRight size={11} className="opacity-50" />
+            <span className="text-text font-medium">{sourceLabel}</span>
+          </>
+        )}
+      </nav>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
@@ -658,7 +732,7 @@ export default function Admin() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5 mb-6 p-1.5 glass rounded-2xl border border-white/8 overflow-x-auto">
+      <div className="flex lg:hidden gap-1.5 mb-6 p-1.5 glass rounded-2xl border border-white/8 overflow-x-auto">
         {([
           ['manga', 'Manga Management', BookOpen],
           ['users', 'Users', Users],
@@ -721,7 +795,7 @@ export default function Admin() {
               </div>
               <div className="w-px h-4 bg-white/10" />
               <span className="text-xs text-text-muted font-body">
-                {lastRefreshed ? (secondsSince < 5 ? <span className="text-emerald-400">Just refreshed</span> : `Updated ${secondsSince}s ago`) : 'Loading...'}
+                <UpdatedAgo since={lastRefreshed} />
               </span>
               <button onClick={silentRefresh} disabled={refreshing} className="p-1 text-text-muted hover:text-text transition-colors disabled:opacity-40">
                 <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
@@ -1602,7 +1676,7 @@ export default function Admin() {
       {/* QUICK IMPORT MODAL */}
       {quickImportId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="bg-[#13131a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+          <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
               <BookOpen size={20} className="text-emerald-400" />
             </div>
@@ -1658,6 +1732,7 @@ export default function Admin() {
           }}
         />
       )}
+      </div>
     </div>
   )
 }
@@ -2305,7 +2380,7 @@ function MangaFormModal({ manga, onClose, onSave }: {
           <div>
             <label className="text-xs text-text-muted font-body mb-1 block uppercase tracking-widest">Status</label>
             <select value={status} onChange={e => setStatus(e.target.value as any)}
-              className="w-full bg-[#09090f] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-text font-body outline-none focus:border-primary/40">
+              className="w-full bg-[var(--card)] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-text font-body outline-none focus:border-primary/40">
               {['ongoing','completed','hiatus','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -2874,7 +2949,7 @@ function SiteSettingsTab({
             </div>
             {/* Search results dropdown */}
             {featuredResults.length > 0 && (
-              <div className="absolute z-20 top-full left-0 right-[calc(theme(spacing.24)+0.5rem)] mt-1 bg-[#1a1a27] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+              <div className="absolute z-20 top-full left-0 right-[calc(theme(spacing.24)+0.5rem)] mt-1 bg-surface border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                 {featuredResults.map(item => (
                   <button key={item.id} onClick={() => {
                     const exp = featuredDuration ? new Date(Date.now() + parseInt(featuredDuration) * 86400000).toISOString() : null
@@ -3112,7 +3187,7 @@ function BannerSlideForm({ slide, onSave, onClose }: { slide: any; onSave: (s: a
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-      <div className="bg-[#13131a] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
+      <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between p-6 pb-4">
           <h3 className="font-display text-xl text-white">{slide ? 'Edit Slide' : 'Add Banner Slide'}</h3>
           <button onClick={onClose} className="text-text-muted hover:text-white transition-colors"><X size={18} /></button>

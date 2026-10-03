@@ -56,6 +56,8 @@
    legible on plain light pages as well. */
 .theme-light .brand-wordmark { color: #fff; text-shadow: 0 1px 8px rgba(13,13,20,0.55); }
 .theme-light a:hover .brand-wordmark { color: #e8394d; text-shadow: none; }
+/* Guest landing page has a light hero in light mode, so use the normal text colour */
+.theme-light body.guest-page .brand-wordmark { color: var(--text); text-shadow: none; }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -151,3 +153,46 @@ body {
 /* Scrollbar hide for horizontal scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* ── Admin performance: no GPU blur on the many cards/panels, cheaper transitions ── */
+.admin-lite .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.admin-lite .glass-hover { transition: border-color 0.2s ease, background-color 0.2s ease; }
+.admin-lite .glass-hover:hover { transform: none; box-shadow: none; }
+
+/* ═══ Admin: simple, flat UI (all themes) + readable light mode ═══ */
+.theme-light body.admin-page .brand-wordmark { color: var(--text); text-shadow: none; }
+
+.admin-lite [class*="shadow-"] { box-shadow: none; }
+.admin-lite .animate-ping { animation: none; }
+
+/* Light theme: the page was written for dark, so map its hardcoded whites/colours */
+.theme-light .admin-lite .text-white:not(.bg-primary, .bg-red-500, .bg-red-600, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-blue-500, .bg-amber-500, [class*="bg-black"], [class*="from-"], .bg-primary *, .bg-red-500 *, .bg-red-600 *, .bg-emerald-500 *, .bg-emerald-600 *, .bg-green-500 *, .bg-blue-500 *, .bg-amber-500 *, [class*="bg-black"] *, [class*="from-"] *) { color: var(--text); }
+
+.theme-light .admin-lite [class~="bg-white/5"]  { background-color: var(--card); }
+.theme-light .admin-lite [class~="bg-white/10"] { background-color: rgba(0,0,0,0.05); }
+.theme-light .admin-lite [class~="bg-white/20"] { background-color: rgba(0,0,0,0.08); }
+.theme-light .admin-lite [class~="hover:bg-white/5"]:hover,
+.theme-light .admin-lite [class~="hover:bg-white/6"]:hover,
+.theme-light .admin-lite [class~="hover:bg-white/10"]:hover { background-color: rgba(0,0,0,0.06); }
+.theme-light .admin-lite [class*="border-white/"] { border-color: var(--border); }
+
+.theme-light .admin-lite .glass { background: var(--surface); }
+
+.theme-light .admin-lite .text-amber-400,
+.theme-light .admin-lite .text-amber-300   { color: #b45309; }
+.theme-light .admin-lite .text-red-400,
+.theme-light .admin-lite .text-red-300     { color: #b91c1c; }
+.theme-light .admin-lite .text-blue-400    { color: #1d4ed8; }
+.theme-light .admin-lite .text-green-400,
+.theme-light .admin-lite .text-green-300   { color: #15803d; }
+.theme-light .admin-lite .text-emerald-400 { color: #047857; }
+.theme-light .admin-lite .text-orange-400  { color: #c2410c; }
+.theme-light .admin-lite .text-purple-400,
+.theme-light .admin-lite .text-purple-300,
+.theme-light .admin-lite .text-violet-400  { color: #7e22ce; }
+.theme-light .admin-lite .text-yellow-400  { color: #a16207; }
+.theme-light .admin-lite .text-cyan-400    { color: #0e7490; }
+.theme-light .admin-lite .text-pink-400    { color: #be185d; }
+.theme-light .admin-lite .text-indigo-400  { color: #4338ca; }

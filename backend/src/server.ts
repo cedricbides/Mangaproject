@@ -40,6 +40,7 @@ import notificationRoutes from './routes/notifications'
 import readingProgressRoutes from './routes/readingProgress'
 import translateRoutes from './routes/translate'
 import pushRoutes from './routes/pushSubscription'
+import publicHomeRoutes from './routes/publicHome'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -263,6 +264,8 @@ app.use('/uploads', requireAuth, express.static(path.join(__dirname, '../public/
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 app.use('/api/auth', authRoutes)
+// Public (no login) data for the guest landing page
+app.use('/api/public', publicHomeRoutes)
 app.use('/api/search', requireAuth, searchRoutes)
 app.use('/api/favorites', requireAuth, favRoutes)
 app.use('/api/admin', adminActivityRoutes)

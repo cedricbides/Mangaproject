@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 import BotShield, { captchaEnabled } from '@/components/BotShield'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -56,7 +57,7 @@ export default function Register() {
 
       <Link to="/" className="inline-flex items-center gap-2 mb-8">
         <BrandMark size={48} />
-        <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
+        <span className="font-display text-3xl tracking-wider text-text">MANGAVERSE</span>
       </Link>
 
       <div className="w-full max-w-sm glass rounded-2xl overflow-hidden">
@@ -68,7 +69,7 @@ export default function Register() {
               <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
                 <CheckCircle size={32} className="text-green-400" />
               </div>
-              <h1 className="font-display text-xl text-white tracking-wide">Account Created!</h1>
+              <h1 className="font-display text-xl text-text tracking-wide">Account Created!</h1>
               <p className="text-sm text-text-muted font-body">
                 Your account has been created successfully.<br />
                 Redirecting to login...
@@ -81,7 +82,7 @@ export default function Register() {
           ) : (
             <>
               <p className="text-xs text-primary text-right font-body mb-2">* Required fields</p>
-              <h1 className="font-display text-xl text-white text-center mb-6 tracking-wide">Register</h1>
+              <h1 className="font-display text-xl text-text text-center mb-6 tracking-wide">Register</h1>
 
               <div className="flex flex-col gap-4">
 
@@ -94,7 +95,7 @@ export default function Register() {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     autoFocus
-                    className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
+                    className="w-full bg-[var(--card)] border border-[var(--border)] focus:border-primary rounded-lg px-4 py-2.5 text-sm text-text placeholder-text-muted outline-none transition-colors font-body"
                     placeholder="Your username"
                   />
                 </div>
@@ -103,12 +104,11 @@ export default function Register() {
                   <label className="text-sm text-text-muted font-body">
                     Password <span className="text-primary">*</span>
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
+                    onChange={setPassword}
                     placeholder="Min. 8 characters"
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -116,12 +116,11 @@ export default function Register() {
                   <label className="text-sm text-text-muted font-body">
                     Confirm password <span className="text-primary">*</span>
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
+                    onChange={setConfirmPassword}
                     placeholder="••••••••"
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -134,7 +133,7 @@ export default function Register() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                    className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-lg px-4 py-2.5 text-sm text-white placeholder-text-muted outline-none transition-colors font-body"
+                    className="w-full bg-[var(--card)] border border-[var(--border)] focus:border-primary rounded-lg px-4 py-2.5 text-sm text-text placeholder-text-muted outline-none transition-colors font-body"
                     placeholder="you@example.com"
                   />
                 </div>
