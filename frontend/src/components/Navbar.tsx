@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import BrandMark from '@/components/BrandMark'
+import LogoMark from '@/components/LogoMark'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Search, Menu, X, LogOut, User, Shield, Heart, Settings, Sun, Moon, BookMarked, WifiOff, Bell, TrendingUp } from 'lucide-react'
@@ -179,10 +179,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-5 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-          <BrandMark size={38} />
-          <span className="brand-wordmark font-display text-2xl tracking-wider text-text group-hover:text-primary transition-colors">
-            MANGAVERSE
+        <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
+          <LogoMark size={42} />
+          <span className="brand-wordmark text-lg font-extrabold tracking-wider text-text"
+            style={{ fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif" }}>
+            MANGA<span className="text-primary">VERSE</span>
           </span>
         </Link>
 

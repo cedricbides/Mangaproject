@@ -4,6 +4,7 @@
 
 /* ── Theme Variables ─────────────────────────────────────────────────────── */
 :root, .theme-dark {
+  --primary-rgb:  232 57 77;
   --bg:           #0d0d14;
   --surface:      #13131e;
   --card:         rgba(255,255,255,0.03);
@@ -196,3 +197,31 @@ body {
 .theme-light .admin-lite .text-cyan-400    { color: #0e7490; }
 .theme-light .admin-lite .text-pink-400    { color: #be185d; }
 .theme-light .admin-lite .text-indigo-400  { color: #4338ca; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin: modern clean dashboard (indigo accent, Plus Jakarta Sans).
+   Follows the site theme (light / dim / dark) via the same --bg / --surface /
+   --text variables as the rest of the app. Only the accent colour is admin-specific.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.admin-modern { --primary-rgb: 99 102 241; }               /* dark + dim */
+.theme-light .admin-modern { --primary-rgb: 79 70 229; }   /* light */
+
+.admin-modern, .admin-modern .font-body, .admin-modern .font-display {
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+}
+.admin-modern .font-display { font-weight: 700; letter-spacing: -0.01em; }
+.admin-modern ::-webkit-scrollbar { width: 6px; height: 6px; }
+.admin-modern ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+.admin-modern ::selection { background: rgb(var(--primary-rgb)); color: #fff; }
+
+/* Clean flat panels: solid surface + 1px border, 12px radius */
+.admin-modern .glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.admin-modern .glass-hover:hover { border-color: rgb(var(--primary-rgb) / 0.4); }
+.admin-modern input, .admin-modern select, .admin-modern textarea { color: var(--text); }
+.admin-modern select option { background: var(--surface); color: var(--text); }
+.theme-light .admin-modern input::placeholder,
+.theme-light .admin-modern textarea::placeholder { color: #94a3b8; }

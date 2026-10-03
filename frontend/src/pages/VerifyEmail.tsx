@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import BrandMark from '@/components/BrandMark'
+import LogoMark from '@/components/LogoMark'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import axios from 'axios'
@@ -43,7 +43,7 @@ export default function VerifyEmail() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <BrandMark size={48} />
+            <LogoMark size={48} />
             <span className="font-display text-3xl tracking-wider text-white">MANGAVERSE</span>
           </Link>
         </div>

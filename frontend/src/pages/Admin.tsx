@@ -7,7 +7,7 @@ import {
   CalendarDays, Activity, Radio,
   Star, Layout, Tag, GripVertical, Globe, Search, Settings,
   Ban, UserX, MessageSquare, FileText, ChevronRight, AlertTriangle,
-  BookMarked, ExternalLink, Loader2, CheckCircle, XCircle, BookCheck, Bell, ChevronLeft
+  BookMarked, ExternalLink, Loader2, CheckCircle, XCircle, BookCheck, Bell, ChevronLeft, Database, Sun, Moon, CloudMoon
 
 } from 'lucide-react'
 import {
@@ -19,6 +19,7 @@ import { useAuth } from '@/context/AuthContext'
 
 import type { LocalManga, LocalChapter, Manga } from '@/types'
 import { getCoverUrl, getMangaTitle, getMangaTags, API_BASE } from '@/utils/manga'
+import LogoMark from '@/components/LogoMark'
 import AdminBulkManager from '@/components/admin/AdminBulkManager'
 import AdminChapterScheduler from '@/components/admin/AdminChapterScheduler'
 import AdminActivityLog from '@/components/admin/AdminActivityLog'
@@ -48,9 +49,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 
 const TooltipStyle = {
-  contentStyle: { background: '#13131f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontSize: 12, fontFamily: 'var(--font-body)' },
-  labelStyle: { color: '#9ca3af' },
-  itemStyle: { color: '#e2e8f0' },
+  contentStyle: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 12, fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif' },
+  labelStyle: { color: 'var(--text-muted)' },
+  itemStyle: { color: 'var(--text)' },
 }
 
 interface AnalyticsData {
@@ -102,7 +103,7 @@ function UpdatedAgo({ since }: { since: Date | null }) {
 
 export default function Admin() {
 
-  const { user, isAdmin, isSuperAdmin, hasPerm, loading } = useAuth()
+  const { user, isAdmin, isSuperAdmin, hasPerm, loading, theme, setTheme } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -496,85 +497,107 @@ export default function Admin() {
 
   return (
 
-    <div className="admin-lite max-w-[1400px] mx-auto px-5 pt-20 pb-16 lg:flex lg:gap-6 lg:items-start">
+    <div className="admin-modern admin-lite fixed inset-0 z-[60] flex overflow-hidden font-body bg-bg text-text">
 
-      {/* ── Left sidebar (desktop). Phones keep the tab bar below. ───────── */}
-      <aside className="hidden lg:flex flex-col gap-1 w-[92px] flex-shrink-0 sticky top-24 glass rounded-2xl p-2 border border-[var(--border)]">
-        {SIDEBAR_ITEMS.map(([tab, label, Icon]: any) => {
-          const locked = isTabLocked(tab)
-          const isActive = activeTab === tab
-          return (
-            <button key={tab}
-              onClick={() => !locked && handleTabChange(tab)}
-              title={locked ? "You don't have permission for this section" : label}
-              className={`relative flex flex-col items-center gap-1.5 px-1.5 py-3 rounded-xl text-center transition-all ${
-                isActive ? 'bg-primary/15 text-primary ring-1 ring-primary/40' :
-                locked ? 'text-text-muted/30 cursor-not-allowed' :
-                'text-text-muted hover:text-text hover:bg-[var(--card)]'
-              }`}>
-              {isActive && <span className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-primary" />}
-              <Icon size={18} />
-              <span className="text-[10px] font-body leading-tight">{label}</span>
-              {locked && <span className="absolute top-1 right-1 text-[8px] opacity-60">🔒</span>}
-              {tab === 'moderation' && !locked && modTotal > 0 && (
-                <span className="absolute top-1 right-1.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-mono rounded-full flex items-center justify-center">
-                  {modTotal}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      <aside className="w-20 lg:w-64 flex-shrink-0 bg-surface border-r border-border flex flex-col justify-between z-30">
+        <div className="min-h-0 overflow-y-auto">
+          <div className="h-16 flex items-center justify-center lg:justify-start px-4 lg:px-6 border-b border-border">
+            <Link to="/" className="flex items-center gap-3" title="Back to site">
+              <LogoMark size={36} />
+              <span className="hidden lg:inline font-extrabold tracking-wider text-text">MANGA<span style={{ color: '#e8394d' }}>VERSE</span></span>
+            </Link>
+          </div>
+
+          <nav className="p-3 space-y-1">
+            {SIDEBAR_ITEMS.map(([tab, label, Icon]: any) => {
+              const locked = isTabLocked(tab)
+              const isActive = activeTab === tab
+              return (
+                <button key={tab}
+                  onClick={() => !locked && handleTabChange(tab)}
+                  title={locked ? "You don't have permission for this section" : label}
+                  className={`relative w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg transition ${
+                    isActive ? 'bg-primary/15 text-primary font-semibold' :
+                    locked ? 'text-text-muted opacity-40 cursor-not-allowed' :
+                    'text-text-muted hover:text-text hover:bg-card'
+                  }`}>
+                  <Icon size={20} className="flex-shrink-0" />
+                  <span className="hidden lg:inline text-sm">{label}</span>
+                  {locked && <span className="hidden lg:inline ml-auto text-[10px] opacity-60">🔒</span>}
+                  {tab === 'moderation' && !locked && modTotal > 0 && (
+                    <span className="absolute top-1 right-1 lg:static lg:ml-auto min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {modTotal}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+
+        <div className="p-4 border-t border-border hidden lg:flex items-center justify-between text-xs text-text-muted">
+          <span>Admin panel</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        </div>
       </aside>
 
-      <div className="flex-1 min-w-0">
+      {/* ── Main column ─────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-      {/* ── Breadcrumb ───────────────────────────────────────────────────── */}
-      <nav className="flex items-center flex-wrap gap-1.5 text-xs font-body text-text-muted mb-4">
-        <Link to="/" className="hover:text-text transition-colors">Home</Link>
-        <ChevronRight size={11} className="opacity-50" />
-        <button onClick={() => handleTabChange('manga')} className="hover:text-text transition-colors">Admin</button>
-        <ChevronRight size={11} className="opacity-50" />
-        <span className={sourceLabel ? 'hover:text-text' : 'text-text font-medium'}>{activeLabel}</span>
-        {sourceLabel && (
-          <>
-            <ChevronRight size={11} className="opacity-50" />
-            <span className="text-text font-medium">{sourceLabel}</span>
-          </>
-        )}
-      </nav>
+        {/* Top bar */}
+        <header className="h-16 flex-shrink-0 bg-surface border-b border-border flex items-center justify-between gap-3 px-4 sm:px-6 z-20">
+          <nav className="flex items-center gap-2 sm:gap-3 text-xs md:text-sm text-text-muted font-medium min-w-0">
+            <Link to="/" className="hover:text-text transition-colors">Home</Link>
+            <ChevronRight size={14} className="text-text-muted flex-shrink-0" />
+            <button onClick={() => handleTabChange('manga')} className="hover:text-text transition-colors">Admin</button>
+            <ChevronRight size={14} className="text-text-muted flex-shrink-0" />
+            <span className={`truncate ${sourceLabel ? 'hover:text-text' : 'text-text font-semibold'}`}>{activeLabel}</span>
+            {sourceLabel && (
+              <span className="hidden sm:flex items-center gap-2 sm:gap-3">
+                <ChevronRight size={14} className="text-text-muted flex-shrink-0" />
+                <span className="text-text font-semibold truncate">{sourceLabel}</span>
+              </span>
+            )}
+          </nav>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-600/20 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/10">
-              <Shield size={20} className="text-amber-400" />
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Theme switcher — same setting as the main site */}
+            <div role="group" aria-label="Theme" className="flex items-center gap-0.5 bg-card border border-border rounded-lg p-0.5">
+              {([
+                ['light', 'Light', Sun],
+                ['dim',   'Dim',   CloudMoon],
+                ['dark',  'Dark',  Moon],
+              ] as const).map(([value, label, Icon]) => (
+                <button key={value} onClick={() => setTheme(value)}
+                  title={`${label} mode`} aria-pressed={theme === value}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                    theme === value ? 'bg-primary text-white' : 'text-text-muted hover:text-text'
+                  }`}>
+                  <Icon size={14} />
+                  <span className="hidden xl:inline">{label}</span>
+                </button>
+              ))}
             </div>
-            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0d0d18]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl text-white tracking-widest uppercase">Admin Dashboard</h1>
-              <span className="text-[9px] px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-full font-mono uppercase tracking-widest">{user?.role}</span>
+
+            <div className="hidden sm:block bg-primary/10 text-indigo-400 border border-primary/20 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide uppercase">
+              {user?.role === 'superadmin' ? 'Admin' : user?.role}
             </div>
-            <p className="text-text-muted text-xs font-body mt-0.5">Logged in as <span className="text-amber-400/80">{user?.name}</span></p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Admin notification bell */}
+
+            {/* Admin notification bell */}
           <div className="relative" ref={adminNotifRef}>
             <button onClick={() => setAdminNotifOpen(v => !v)}
-              className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-              <Bell size={16} className="text-amber-400" />
+              className="relative flex items-center justify-center p-2 border border-border rounded-lg text-text-muted hover:bg-card hover:text-text transition">
+              <Bell size={16} />
               {adminUnread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-primary rounded-full text-[9px] text-white font-body font-bold flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-primary text-white rounded-full text-[9px] text-white font-body font-bold flex items-center justify-center">
                   {adminUnread > 99 ? '99+' : adminUnread}
                 </span>
               )}
             </button>
 
             {adminNotifOpen && (
-              <div className="absolute right-0 top-12 w-80 bg-surface border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[420px]">
+              <div className="absolute right-0 top-12 w-80 bg-surface border border-border rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[420px]">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
                   <span className="font-display text-sm text-white">Admin Notifications</span>
                   {adminUnread > 0 && (
@@ -623,159 +646,98 @@ export default function Admin() {
             )}
           </div>
 
-          <Link to="/" className="flex items-center gap-2 px-4 py-2 glass rounded-xl text-sm font-body text-text-muted hover:text-text border border-white/8 hover:border-white/15 transition-all">
-            <ChevronRight size={14} className="rotate-180 opacity-60" />
-            Back to Site
-          </Link>
-        </div>
+            <div className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 rounded-lg">
+              <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
+                {(user?.name || 'A').charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-medium text-text hidden sm:inline max-w-[160px] truncate">{(user as any)?.email || user?.name}</span>
+            </div>
+          </div>
+        </header>
 
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="max-w-[1500px] mx-auto">
+
+      {/* ── Page heading ─────────────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 mb-6 border-b border-border">
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight text-text uppercase">Admin Dashboard</h1>
+            <span className="bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full">{user?.role}</span>
+          </div>
+          <p className="text-xs text-text-muted mt-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Logged in as {(user as any)?.email || user?.name}</span>
+          </p>
+        </div>
+        <Link to="/" className="self-start md:self-auto bg-primary hover:bg-primary/90 text-white px-4 py-2 text-xs font-semibold rounded-lg transition flex items-center gap-2">
+          <ChevronLeft size={14} />
+          <span>Back to Site</span>
+        </Link>
       </div>
 
-      {/* ── Row 1: Main Stats ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-3">
+      {/* ── Primary metrics ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
         {[
-          { icon: Users,       label: 'Users',        value: stats.userCount,    color: 'text-blue-400',    border: 'border-blue-500/25',    glow: 'from-blue-500/15 to-transparent',    tab: 'users' },
-          { icon: BookOpen,    label: 'Local Manga',  value: stats.mangaCount,   color: 'text-green-400',   border: 'border-green-500/25',   glow: 'from-green-500/15 to-transparent',   tab: 'manga' },
-          { icon: Layers,      label: 'Chapters',     value: stats.chapterCount, color: 'text-purple-400',  border: 'border-purple-500/25',  glow: 'from-purple-500/15 to-transparent',  tab: 'manga' },
-          { icon: Check,       label: 'Published',    value: mangaList.filter(m => m.status === 'ongoing' || m.status === 'completed').length, color: 'text-emerald-400', border: 'border-emerald-500/25', glow: 'from-emerald-500/15 to-transparent', tab: 'manga' },
-          { icon: AlertCircle, label: 'Drafts',       value: mangaList.filter(m => m.status === 'hiatus'   || m.status === 'cancelled').length,  color: 'text-yellow-400',  border: 'border-yellow-500/25',  glow: 'from-yellow-500/15 to-transparent',  tab: 'manga' },
-          { icon: TrendingUp,  label: 'Manual',       value: mangaList.length,   color: 'text-amber-400',   border: 'border-amber-500/25',   glow: 'from-amber-500/15 to-transparent',   tab: 'manga' },
-          { icon: Eye,         label: 'MangaDex',     value: apiTotal,           color: 'text-cyan-400',    border: 'border-cyan-500/25',    glow: 'from-cyan-500/15 to-transparent',    tab: 'manga' },
-        ].map(({ icon: Icon, label, value, color, border, glow, tab }) => (
+          { icon: Users,    label: 'Users',       value: stats.userCount,    dot: 'bg-emerald-500', tab: 'users' },
+          { icon: BookOpen, label: 'Local Manga', value: stats.mangaCount,   dot: 'bg-emerald-500', tab: 'manga' },
+          { icon: Layers,   label: 'Chapters',    value: stats.chapterCount, dot: 'bg-emerald-500', tab: 'manga' },
+          { icon: Check,    label: 'Published',   value: mangaList.filter(m => m.status === 'ongoing' || m.status === 'completed').length, dot: 'bg-emerald-500', tab: 'manga' },
+          { icon: Clock,    label: 'Drafts',      value: mangaList.filter(m => m.status === 'hiatus' || m.status === 'cancelled').length,   dot: 'bg-amber-500',   tab: 'manga' },
+          { icon: Database, label: 'MangaDex',    value: apiTotal,           dot: 'bg-primary',  tab: 'manga' },
+        ].map(({ icon: Icon, label, value, dot, tab }) => (
           <button key={label} onClick={() => handleTabChange(tab as any)}
-            className={`group relative overflow-hidden glass rounded-2xl p-3.5 flex flex-col gap-2 cursor-pointer border ${border} hover:scale-[1.03] hover:brightness-110 transition-all duration-200 text-left`}>
-            <div className={`absolute inset-0 bg-gradient-to-br ${glow} opacity-70 group-hover:opacity-100 transition-opacity pointer-events-none`} />
-            <div className="relative z-10 flex items-center justify-between">
-              <div className={`w-7 h-7 rounded-lg bg-black/25 flex items-center justify-center ${color}`}>
-                <Icon size={13} />
-              </div>
-              <div className={`w-1.5 h-1.5 rounded-full opacity-50 ${color.replace('text-', 'bg-')}`} />
+            className="bg-surface border border-border p-4 rounded-xl hover:border-primary/40 transition text-left">
+            <div className="flex items-center justify-between mb-2">
+              <Icon size={16} className="text-primary" />
+              <span className={`w-2 h-2 rounded-full ${dot}`} />
             </div>
-            <div className="relative z-10">
-              <p className={`font-display text-2xl font-bold ${color} leading-none tabular-nums`}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
-              <p className="text-text-muted text-[10px] font-body mt-1 uppercase tracking-widest opacity-70">{label}</p>
-            </div>
+            <div className="text-xl font-bold text-text tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-wider font-semibold mt-1">{label}</div>
           </button>
         ))}
       </div>
 
-      {/* ── Row 2: Chapter Sources Panel ─────────────────────────────────────── */}
-      <div className="glass rounded-2xl border border-white/8 mb-6 overflow-hidden">
-        <div className="grid grid-cols-3 divide-x divide-white/5">
-          {[
-            {
-              icon: BookCheck, badge: 'MANGADEX', label: 'Imported Chapters',
-              value: stats.mdxImportedChapters, sub: 'From MangaDex API',
-              color: 'text-blue-400', badgeClass: 'bg-blue-500/20 border-blue-500/30 text-blue-400', glow: 'from-blue-500/10',
-            },
-            {
-              icon: Globe, badge: 'COMICK', label: 'Gap-fill Chapters',
-              value: stats.comickChapters, sub: 'ComicK auto-filled',
-              color: 'text-green-400', badgeClass: 'bg-green-500/20 border-green-500/30 text-green-400', glow: 'from-green-500/10',
-            },
-            {
-              icon: FileText, badge: 'MANUAL', label: 'Manual Chapters',
-              value: stats.manualChapters, sub: 'Uploaded by admins',
-              color: 'text-amber-400', badgeClass: 'bg-amber-500/20 border-amber-500/30 text-amber-400', glow: 'from-amber-500/10',
-            },
-          ].map(({ icon: Icon, badge, label, value, sub, color, badgeClass, glow }) => {
-            const total = (stats.mdxImportedChapters || 0) + (stats.comickChapters || 0) + (stats.manualChapters || 0)
-            const pct   = total > 0 ? Math.round(((value || 0) / total) * 100) : 0
-            return (
-              <div key={badge} className={`relative overflow-hidden flex items-center gap-4 px-5 py-4`}>
-                <div className={`absolute inset-0 bg-gradient-to-r ${glow} to-transparent opacity-40 pointer-events-none`} />
-                {/* Icon */}
-                <div className={`relative z-10 w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center flex-shrink-0 ${color}`}>
-                  <Icon size={16} />
-                </div>
-                {/* Info */}
-                <div className="relative z-10 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${badgeClass}`}>{badge}</span>
-                    <span className="text-[10px] text-text-muted font-body">{sub}</span>
+      {/* ── Chapter sources ──────────────────────────────────────────────── */}
+      {(() => {
+        const total = (stats.mdxImportedChapters || 0) + (stats.comickChapters || 0) + (stats.manualChapters || 0)
+        const pctOf = (n: number) => total > 0 ? Math.round(((n || 0) / total) * 100) : 0
+        const cards = [
+          { label: 'Mangadex API',       value: stats.mdxImportedChapters, desc: 'Imported Chapters',  bar: 'bg-primary' },
+          { label: 'Comick Auto-Filled', value: stats.comickChapters,      desc: 'Gap-fill Chapters',  bar: 'bg-emerald-500' },
+          { label: 'Manual Uploads',     value: stats.manualChapters,      desc: 'Manual Chapters',    bar: 'bg-amber-500' },
+        ]
+        return (
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {cards.map(c => (
+                <div key={c.label} className="bg-surface border border-border p-4 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] tracking-wider uppercase text-text-muted font-bold">{c.label}</div>
+                    <div className="text-base font-bold text-text mt-0.5 tabular-nums">
+                      {(c.value || 0).toLocaleString()} <span className="text-xs font-normal text-text-muted">{c.desc}</span>
+                    </div>
                   </div>
-                  <p className={`font-display text-2xl font-bold ${color} leading-none tabular-nums`}>{(value || 0).toLocaleString()}</p>
-                  <p className="text-text-muted text-[10px] font-body mt-0.5">{label}</p>
+                  <span className="text-xs bg-card text-text-muted px-2.5 py-1 rounded-md font-medium">{pctOf(c.value)}% of total</span>
                 </div>
-                {/* Percentage pill */}
-                <div className="relative z-10 flex-shrink-0 text-right">
-                  <p className={`font-display text-lg font-bold ${color} tabular-nums`}>{pct}%</p>
-                  <p className="text-[9px] text-text-muted font-body">of total</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        {/* Progress bar across full width */}
-        {(() => {
-          const total  = (stats.mdxImportedChapters || 0) + (stats.comickChapters || 0) + (stats.manualChapters || 0)
-          if (total === 0) return null
-          const mdxPct    = Math.round(((stats.mdxImportedChapters || 0) / total) * 100)
-          const comickPct = Math.round(((stats.comickChapters || 0)       / total) * 100)
-          const manualPct = 100 - mdxPct - comickPct
-          return (
-            <div className="border-t border-white/5 px-5 py-2.5 flex items-center gap-3">
-              <span className="text-[9px] text-text-muted font-mono uppercase tracking-widest flex-shrink-0">Chapter breakdown</span>
-              <div className="flex-1 flex rounded-full overflow-hidden h-1.5 gap-px">
-                {mdxPct    > 0 && <div className="bg-blue-400  transition-all" style={{ width: `${mdxPct}%`    }} />}
-                {comickPct > 0 && <div className="bg-green-400 transition-all" style={{ width: `${comickPct}%` }} />}
-                {manualPct > 0 && <div className="bg-amber-400 transition-all" style={{ width: `${manualPct}%` }} />}
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="flex items-center gap-1 text-[9px] text-blue-400/70 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />{mdxPct}%</span>
-                <span className="flex items-center gap-1 text-[9px] text-green-400/70 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />{comickPct}%</span>
-                <span className="flex items-center gap-1 text-[9px] text-amber-400/70 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />{manualPct}%</span>
-              </div>
+              ))}
             </div>
-          )
-        })()}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex lg:hidden gap-1.5 mb-6 p-1.5 glass rounded-2xl border border-white/8 overflow-x-auto">
-        {([
-          ['manga', 'Manga Management', BookOpen],
-          ['users', 'Users', Users],
-          ['analytics', 'Analytics', BarChart2],
-          ['site', 'Site Settings', Settings],
-          ['moderation', 'Moderation', AlertTriangle],
-          ['requests', 'Requests', BookMarked],
-          ['tools', 'Admin Tools', Shield],
-        ] as const).map(([tab, label, Icon]: any) => {
-          const permMap: Record<string, string> = {
-            manga: 'manga', users: 'users', analytics: 'analytics',
-            site: 'site', moderation: 'moderation', tools: 'tools.visitors', requests: 'moderation',
-          }
-          const locked = !isSuperAdmin && tab !== 'manga' && !hasPerm(permMap[tab] || tab)
-          const isActive = activeTab === tab
-          return (
-          <button key={tab} onClick={() => !locked && handleTabChange(tab)}
-            title={locked ? "You don't have permission for this tab" : undefined}
-            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-body transition-all whitespace-nowrap flex-shrink-0 ${
-              isActive ? 'bg-primary text-white shadow-lg shadow-primary/30 font-medium' :
-              locked ? 'text-text-muted/25 cursor-not-allowed' :
-              'text-text-muted hover:text-text hover:bg-white/6'
-            }`}>
-            <Icon size={13} className={isActive ? 'opacity-100' : 'opacity-60'} />
-            {label}
-            {locked && <span className="ml-0.5 text-[9px] opacity-50">🔒</span>}
-            {tab === 'moderation' && !locked && (modCounts.pendingReports + modCounts.flaggedComments + modCounts.flaggedReviews) > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-mono rounded-full flex items-center justify-center">
-                {modCounts.pendingReports + modCounts.flaggedComments + modCounts.flaggedReviews}
-              </span>
+            {total > 0 && (
+              <div className="flex rounded-full overflow-hidden h-1.5 gap-px mt-3 bg-card">
+                {cards.map(c => pctOf(c.value) > 0 && <div key={c.label} className={`${c.bar} transition-all`} style={{ width: `${pctOf(c.value)}%` }} />)}
+              </div>
             )}
-          </button>
-          )
-        })}
+          </div>
+        )
+      })()}
 
-      </div>
 
       {/* ── MANGA TAB ─────────────────────────────────────────────────────────── */}
       {activeTab === 'manga' && (
         <div>
 
           {/* ── LIVE MONITOR BAR ─────────────────────────────────────────── */}
-          <div className="flex items-center justify-between glass rounded-2xl px-4 py-3 mb-4 border border-white/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface border border-border p-4 rounded-xl mb-5">
             <div className="flex items-center gap-3">
               <div className="relative flex items-center gap-2">
                 {liveEnabled ? (
@@ -784,7 +746,7 @@ export default function Admin() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
                     </span>
-                    <span className="text-xs font-body text-emerald-400 font-semibold tracking-widest uppercase">Live</span>
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg uppercase tracking-wider">Live</span>
                   </>
                 ) : (
                   <>
@@ -803,7 +765,7 @@ export default function Admin() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-text-muted font-body">Auto-refresh 30s</span>
-              <button onClick={() => setLiveEnabled(v => !v)} className={`relative w-9 h-5 rounded-full transition-colors ${liveEnabled ? 'bg-emerald-500' : 'bg-white/10'}`}>
+              <button onClick={() => setLiveEnabled(v => !v)} className={`relative w-9 h-5 rounded-full transition-colors ${liveEnabled ? 'bg-primary' : 'bg-slate-200'}`}>
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${liveEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
             </div>
@@ -812,7 +774,7 @@ export default function Admin() {
           {/* ── SOURCE FILTER + ACTIONS ──────────────────────────────────── */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
             {/* Source tabs */}
-            <div className="flex gap-1 glass rounded-xl p-1 border border-white/10">
+            <div className="flex gap-2 overflow-x-auto">
               {([
                 ['all', 'All on Site'],
                 ['api', 'MangaDex API'],
@@ -821,7 +783,7 @@ export default function Admin() {
                 <button key={src} onClick={() => {
                     setMangaSource(src)
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-body transition-all ${mangaSource === src ? 'bg-primary text-white' : 'text-text-muted hover:text-text'}`}>
+                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition flex-shrink-0 ${mangaSource === src ? 'bg-primary text-white' : 'bg-surface border border-border text-text-muted hover:bg-card hover:text-text'}`}>
                   {label}
                   {src === 'api' && apiTotal > 0 && <span className="ml-1 opacity-60">{apiTotal.toLocaleString()}</span>}
                   {src === 'local' && mangaList.length > 0 && <span className="ml-1 opacity-60">{mangaList.length}</span>}
@@ -831,17 +793,20 @@ export default function Admin() {
 
             {/* MangaDex search — only when API view is active */}
             {mangaSource !== 'local' && (
-              <input
-                value={apiSearch}
-                onChange={e => setApiSearch(e.target.value)}
-                placeholder="Search MangaDex titles..."
-                className="flex-1 min-w-[160px] bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-text font-body outline-none focus:border-primary/40 placeholder:text-text-muted"
-              />
+              <div className="relative flex-1 min-w-[160px] md:max-w-xs">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-text-muted"><Search size={14} /></span>
+                <input
+                  value={apiSearch}
+                  onChange={e => setApiSearch(e.target.value)}
+                  placeholder="Search MangaDex titles..."
+                  className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-text outline-none focus:border-primary transition"
+                />
+              </div>
             )}
 
             {/* Sort — only for local/all views */}
             {mangaSource !== 'api' && (
-              <div className="flex items-center gap-2 glass rounded-xl px-3 py-2 border border-white/10">
+              <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2">
                 <ArrowUpDown size={13} className="text-text-muted" />
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
                   className="bg-transparent text-sm font-body text-text-muted outline-none cursor-pointer">
@@ -860,7 +825,7 @@ export default function Admin() {
             {/* Add Manga — single canonical button, hidden in API-only view */}
             {mangaSource !== 'api' && (
               <button onClick={() => { setEditingManga(null); setShowMangaForm(true) }}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-body rounded-xl transition-all shadow-sm">
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-lg transition shadow-sm shadow-indigo-200">
                 <Plus size={15} /> Add Manga
               </button>
             )}
@@ -915,52 +880,59 @@ export default function Admin() {
           {mangaSource !== 'local' && (
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-blue-400" />
-                <span className="text-xs font-body text-blue-400 uppercase tracking-widest font-semibold">MangaDex API</span>
-                <span className="text-xs text-text-muted font-body ml-1">— {apiTotal.toLocaleString()} titles on your site</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <span className="text-xs font-bold text-text uppercase">MangaDex API</span>
+                <span className="text-xs text-text-muted font-medium">— {apiTotal.toLocaleString()} titles on your site</span>
               </div>
               {loadingApi ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[...Array(8)].map((_, i) => <div key={i} className="skeleton h-52 rounded-xl" />)}
+                  {[...Array(8)].map((_, i) => <div key={i} className="skeleton aspect-[3/4] rounded-xl" />)}
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
                     {apiManga.map(m => {
                       const title = getMangaTitle(m)
                       const cover = getCoverUrl(m, 256)
                       const tags = getMangaTags(m).slice(0, 2)
                       const status = m.attributes.status
+                      const statusCls: Record<string, string> = {
+                        ongoing: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                        completed: 'bg-primary/15 text-indigo-400 border-primary/30',
+                        hiatus: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                        cancelled: 'bg-red-500/15 text-red-400 border-red-500/30',
+                      }
                       return (
-                        <div key={m.id} className="glass rounded-xl overflow-hidden group hover:ring-1 hover:ring-blue-400/30 transition-all relative">
-                          <div className="relative">
-                            <img src={cover} alt={title} className="w-full h-36 object-cover"
-                              loading="lazy" onError={e => (e.currentTarget.src = 'https://placehold.co/120x180/1a1a2e/white?text=No+Cover')} />
-                            <div className="absolute top-1.5 left-1.5">
-                              <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/80 text-white rounded font-body backdrop-blur-sm">MangaDex</span>
-                            </div>
-                            <div className="absolute top-1.5 right-1.5">
-                              <span className="text-[9px] px-1.5 py-0.5 rounded font-body backdrop-blur-sm"
-                                style={{ background: `${STATUS_COLORS[status]}cc`, color: '#fff' }}>{status}</span>
-                            </div>
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              <Link to={`/manga/${m.id}`} className="px-3 py-1.5 bg-primary text-white text-[10px] font-body rounded-lg hover:bg-primary/90 transition-colors">View</Link>
-                              <button onClick={e => { e.preventDefault(); setQuickImportId(m.id) }}
-                                className="px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-body rounded-lg hover:bg-emerald-500 transition-colors">+ Import</button>
-                            </div>
-                            {importedMangaIds.has(m.id) && (
-                              <div className="absolute bottom-1.5 left-1.5">
-                                <span className="text-[9px] px-1.5 py-0.5 bg-emerald-500/80 text-white rounded font-body backdrop-blur-sm flex items-center gap-1">
-                                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
-                                  Imported
-                                </span>
+                        <div key={m.id} className="group bg-surface border border-border rounded-xl overflow-hidden flex flex-col justify-between hover:border-primary/40 hover:shadow-md transition duration-300">
+                          <div>
+                            <div className="relative aspect-[3/4] overflow-hidden bg-card">
+                              <img src={cover} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                loading="lazy" onError={e => (e.currentTarget.src = 'https://placehold.co/240x320/2a2a40/9ca3af?text=No+Cover')} />
+                              <div className="absolute top-2.5 left-2.5">
+                                <span className="bg-black/60 text-white border border-white/20 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">MangaDex</span>
                               </div>
-                            )}
+                              <div className="absolute top-2.5 right-2.5">
+                                <span className={`${statusCls[status] || 'bg-card text-text-muted border-border'} border text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider`}>{status}</span>
+                              </div>
+                            </div>
+                            <div className="p-3.5 space-y-1">
+                              <h3 className="font-bold text-xs text-text line-clamp-1 group-hover:text-primary transition" title={title}>{title}</h3>
+                              <p className="text-[10px] text-text-muted line-clamp-1">{tags.join(', ') || '—'}</p>
+                            </div>
                           </div>
-                          <div className="p-2">
-                            <p className="text-xs text-text font-body line-clamp-2 leading-tight mb-1">{title}</p>
-                            <p className="text-[10px] text-text-muted font-body truncate">{tags.join(', ') || '—'}</p>
-                            {m.attributes.year && <p className="text-[10px] text-text-muted font-body opacity-50">{m.attributes.year}</p>}
+                          <div className="px-3.5 pb-3.5 pt-2 flex items-center justify-between gap-2 text-[10px] text-text-muted border-t border-border">
+                            <span className="font-semibold">{m.attributes.year || '—'}</span>
+                            <div className="flex items-center gap-1.5">
+                              <Link to={`/manga/${m.id}`} className="border border-border px-2.5 py-1 rounded-md text-text font-medium hover:bg-card transition">View</Link>
+                              {importedMangaIds.has(m.id) ? (
+                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">
+                                  <Check size={9} /> Imported
+                                </span>
+                              ) : (
+                                <button onClick={e => { e.preventDefault(); setQuickImportId(m.id) }}
+                                  className="border border-border px-2.5 py-1 rounded-md text-text font-medium hover:bg-primary hover:text-white hover:border-primary transition">+ Import</button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )
@@ -1478,7 +1450,7 @@ export default function Admin() {
                           <stop offset="95%" stopColor="#e8394d" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
 
                       <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} interval={6} axisLine={false} />
                       <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
@@ -1500,7 +1472,7 @@ export default function Admin() {
                           <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} interval={3} axisLine={false} />
                       <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
                       <Tooltip {...TooltipStyle} />
@@ -1523,7 +1495,7 @@ export default function Admin() {
                         <stop offset="95%" stopColor="#7c6af7" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} interval={6} axisLine={false} />
                     <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
                     <Tooltip {...TooltipStyle} />
@@ -1541,7 +1513,7 @@ export default function Admin() {
                   ) : (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={analytics.topManga} layout="vertical" margin={{ left: 8, right: 24 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                         <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} />
                         <YAxis type="category" dataKey="title" tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false} width={100} />
                         <Tooltip {...TooltipStyle} formatter={(v) => [v, 'Views']} />
@@ -1562,7 +1534,7 @@ export default function Admin() {
                   ) : (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={analytics.topSaved} layout="vertical" margin={{ left: 8, right: 24 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                         <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} />
                         <YAxis type="category" dataKey="title" tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false} width={100} />
                         <Tooltip {...TooltipStyle} formatter={(v) => [v, 'Saves']} />
@@ -1585,7 +1557,7 @@ export default function Admin() {
                 ) : (
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={analytics.mostCommented} layout="vertical" margin={{ left: 8, right: 24 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                       <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
                       <YAxis type="category" dataKey="title" tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false} width={100} />
                       <Tooltip {...TooltipStyle} formatter={(v) => [v, 'Comments']} />
@@ -1732,6 +1704,8 @@ export default function Admin() {
           }}
         />
       )}
+        </div>
+        </main>
       </div>
     </div>
   )

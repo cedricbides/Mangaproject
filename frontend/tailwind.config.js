@@ -13,7 +13,7 @@ export default {
         surface:      'var(--surface)',
         card:         'var(--card)',
         border:       'var(--border)',
-        primary:      '#e8394d',
+        primary:      'rgb(var(--primary-rgb) / <alpha-value>)',
         'primary-dim':'rgba(232,57,77,0.15)',
         'primary-glow':'rgba(232,57,77,0.35)',
         accent:       '#f5a623',

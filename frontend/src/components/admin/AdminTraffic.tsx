@@ -21,7 +21,7 @@ interface Summary {
 }
 
 const TooltipStyle = {
-  contentStyle: { background: '#13131f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 11 },
+  contentStyle: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11, color: 'var(--text)' },
   labelStyle: { color: '#9ca3af' },
   itemStyle: { color: '#e2e8f0' },
 }
@@ -135,7 +135,7 @@ export default function AdminTraffic() {
         <h4 className="text-sm text-text-muted mb-3">Requests per hour <span className="text-red-400">(red = blocked)</span></h4>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={data?.hourly || []} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="label" tick={{ fill: '#6b7280', fontSize: 9 }} tickLine={false} axisLine={false}
               interval={Math.max(0, Math.floor((data?.hourly.length || 0) / 8))} />
             <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} tickLine={false} axisLine={false} />

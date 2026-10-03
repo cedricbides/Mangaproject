@@ -25,7 +25,7 @@ interface ActiveData {
 interface HistoryBucket { time: string; total: number; auth: number }
 
 const TooltipStyle = {
-  contentStyle: { background: '#13131f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 11 },
+  contentStyle: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11, color: 'var(--text)' },
   labelStyle: { color: '#9ca3af' },
   itemStyle: { color: '#e2e8f0' },
 }
@@ -116,7 +116,7 @@ export default function AdminVisitorTracker() {
                 <stop offset="95%" stopColor="#e8394d" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="time" tick={{ fill: '#6b7280', fontSize: 9 }} tickLine={false} axisLine={false}
               interval={Math.floor(history.length / 6)} />
             <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} tickLine={false} axisLine={false} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import BrandMark from '@/components/BrandMark'
+import LogoMark from '@/components/LogoMark'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { AlertCircle, Mail, CheckCircle } from 'lucide-react'
 import axios from 'axios'
@@ -73,7 +73,7 @@ export default function Login() {
     return (
       <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5">
         <Link to="/" className="inline-flex items-center gap-2 mb-8">
-          <BrandMark size={48} />
+          <LogoMark size={48} />
           <span className="font-display text-3xl tracking-wider text-text">MANGAVERSE</span>
         </Link>
         <div className="w-full max-w-sm glass rounded-2xl overflow-hidden">
@@ -119,7 +119,7 @@ export default function Login() {
     <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5">
 
       <Link to="/" className="inline-flex items-center gap-2 mb-8">
-        <BrandMark size={48} />
+        <LogoMark size={48} />
         <span className="font-display text-3xl tracking-wider text-text">MANGAVERSE</span>
       </Link>
 

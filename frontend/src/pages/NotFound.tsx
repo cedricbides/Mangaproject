@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import BrandMark from '@/components/BrandMark'
+import LogoMark from '@/components/LogoMark'
 import { BookOpen, Home, ArrowLeft, Search } from 'lucide-react'
 
 export default function NotFound() {
@@ -10,7 +10,7 @@ export default function NotFound() {
 
       {/* Logo */}
       <Link to="/" className="inline-flex items-center gap-2 mb-12">
-        <BrandMark size={48} />
+        <LogoMark size={48} />
         <span className="font-display text-2xl tracking-wider text-white">MANGAVERSE</span>
       </Link>
 
